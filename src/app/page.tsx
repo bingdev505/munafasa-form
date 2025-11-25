@@ -46,14 +46,14 @@ const formSchema = z.object({
     class: z.string().min(1, "Class is required."),
     student_name: z.string().min(1, "Student name is required."),
     number_of_males: z.preprocess(
-        (a) => parseInt(z.string().parse(a), 10),
-        z.number().min(0, "Number of males must be a non-negative number.")
+        (a) => (a === '' || a === undefined ? undefined : parseInt(z.string().parse(a), 10)),
+        z.number().min(0).optional()
     ),
     number_of_females: z.preprocess(
-        (a) => parseInt(z.string().parse(a), 10),
-        z.number().min(0, "Number of females must be a non-negative number.")
+        (a) => (a === '' || a === undefined ? undefined : parseInt(z.string().parse(a), 10)),
+        z.number().min(0).optional()
     ),
-    reach_time: z.string().min(1, "Arrival time is required."),
+    reach_time: z.string().optional(),
 });
 
 export default function Home() {
@@ -66,8 +66,6 @@ export default function Home() {
     defaultValues: {
       class: "",
       student_name: "",
-      number_of_males: 0,
-      number_of_females: 0,
       reach_time: "",
     },
   });
@@ -88,7 +86,13 @@ export default function Home() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
         try {
-            const result = await updateSheet(values);
+            const dataToSubmit = {
+                ...values,
+                number_of_males: values.number_of_males ?? 0,
+                number_of_females: values.number_of_females ?? 0,
+                reach_time: values.reach_time ?? "",
+            };
+            const result = await updateSheet(dataToSubmit);
             if (result.success) {
                 toast({
                     title: "Success!",
@@ -211,9 +215,9 @@ export default function Home() {
                         name="number_of_males"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Number of Males *</FormLabel>
+                            <FormLabel>Number of Males</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.valueAsNumber)} />
+                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -224,9 +228,9 @@ export default function Home() {
                         name="number_of_females"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Number of Females *</FormLabel>
+                            <FormLabel>Number of Females</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.valueAsNumber)} />
+                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -238,8 +242,8 @@ export default function Home() {
                       name="reach_time"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>When will you reach? *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormLabel>When will you reach?</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
                               <FormControl>
                               <SelectTrigger>
                                   <SelectValue placeholder="Select a time" />
