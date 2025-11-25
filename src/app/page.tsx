@@ -25,8 +25,10 @@ import {
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { updateSheet } from "@/app/actions/update-sheet";
 
 const formSchema = z.object({
+    student_id: z.string().min(1, "Student ID is required."),
     class: z.string().min(1, "Class is required."),
     student_name: z.string().min(1, "Student name is required."),
     number_of_males: z.preprocess(
@@ -47,6 +49,7 @@ export default function Home() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      student_id: "",
       class: "",
       student_name: "",
       number_of_males: 0,
@@ -56,13 +59,29 @@ export default function Home() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    startTransition(() => {
-        console.log("Form submitted:", values);
-        toast({
-            title: "Success!",
-            description: "Your attendance has been recorded.",
-        });
-        form.reset();
+    startTransition(async () => {
+        try {
+            const result = await updateSheet(values);
+            if (result.success) {
+                toast({
+                    title: "Success!",
+                    description: "Your attendance has been recorded in the Google Sheet.",
+                });
+                form.reset();
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Uh oh! Something went wrong.",
+                    description: result.error || "Could not save to Google Sheet.",
+                });
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: "An error occurred while updating the sheet.",
+            });
+        }
     });
   }
 
@@ -76,6 +95,19 @@ export default function Home() {
           <CardContent>
               <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                      control={form.control}
+                      name="student_id"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Student ID *</FormLabel>
+                          <FormControl>
+                              <Input placeholder="Enter your Student ID" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
                   <FormField
                       control={form.control}
                       name="class"
