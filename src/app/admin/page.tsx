@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [importError, setImportError] = useState<string | null>(null);
 
   const fetchAttendance = async () => {
+    setLoading(true);
     const { data, error } = await getAttendance();
     if (error) {
       setError(error);
@@ -72,11 +73,19 @@ export default function AdminPage() {
       setImportError(null);
       Papa.parse(file, {
         header: true,
+        skipEmptyLines: true,
         complete: async (results) => {
           const importedData = results.data.map((row: any) => ({
-            name: row.name,
-            class: row.class,
-          }));
+            name: row.Name || row.name || row.ID || row.id, // Handles different possible headers for name
+            class: row.Class || row.class,
+          })).filter(item => item.name && item.class); // Filter out rows that are missing name or class
+
+          if (importedData.length === 0) {
+            setImportError("No valid data found in CSV file. Ensure columns are named 'Name' (or 'ID') and 'Class'.");
+            setImporting(false);
+            return;
+          }
+
           const { success, error } = await saveImportedAttendance(importedData);
           if (success) {
             fetchAttendance(); // Refresh the data
