@@ -2,11 +2,11 @@
 
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { students } from '@/app/lib/student-data';
 
 const formSchema = z.object({
     class: z.string(),
-    student_name: z.string(), // This is the student's name now, not the ID
+    student_id: z.string(),
+    student_name: z.string(),
     number_of_males: z.number(),
     number_of_females: z.number(),
     reach_time: z.string(),
@@ -26,12 +26,10 @@ async function getGoogleSheetsClient() {
     const auth = new google.auth.JWT(
         process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         undefined,
-        // The private key needs to have newlines replaced to be read from the environment variable.
         process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         ['https://www.googleapis.com/auth/spreadsheets']
     );
 
-    // The JWT auth client can be used directly.
     return google.sheets({ version: 'v4', auth });
 }
 
@@ -42,13 +40,6 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
     
     try {
         const sheets = await getGoogleSheetsClient();
-
-        // Find the student's ID based on their name.
-        const student = students.find(s => s.name === data.student_name);
-        if (!student) {
-            return { success: false, error: `Student "${data.student_name}" not found.` };
-        }
-        const studentId = student.id;
         
         // 1. Read the entire sheet to find the row with the matching ID.
         const getRowsResponse = await sheets.spreadsheets.values.get({
@@ -58,20 +49,19 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
 
         const rows = getRowsResponse.data.values;
         if (!rows || rows.length === 0) {
-            // If the sheet is empty, we can't find a row.
-            // Depending on requirements, you might want to append a new row here.
             return { success: false, error: 'Sheet is empty or could not be read.' };
         }
 
         // Find the row index that matches the student_id. +1 because sheets are 1-indexed.
-        const rowIndex = rows.findIndex(row => row[0] === studentId) + 1;
+        const rowIndex = rows.findIndex(row => row[0] === data.student_id) + 1;
 
         if (rowIndex === 0) { // findIndex returns -1 if not found, so it becomes 0 here.
-             return { success: false, error: `Student ID "${studentId}" not found in the sheet. Make sure the ID column in your sheet is correct.` };
+             return { success: false, error: `Student ID "${data.student_id}" not found in the sheet. Make sure the ID column in your sheet is correct.` };
         }
 
         // 2. Update the specific row with the new data.
         // Assuming your columns are in order: ID, Class, Name, Males, Females, Reach Time
+        // We start updating from Column B, since Column A (ID) is just for lookup.
         const updateRange = `${SHEET_NAME}!B${rowIndex}:F${rowIndex}`;
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
