@@ -31,8 +31,8 @@ async function getGoogleSheetsClient() {
         ['https://www.googleapis.com/auth/spreadsheets']
     );
 
-    const authClient = await auth.getClient();
-    return google.sheets({ version: 'v4', auth: authClient as any });
+    // The JWT auth client can be used directly.
+    return google.sheets({ version: 'v4', auth });
 }
 
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
