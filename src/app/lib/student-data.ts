@@ -420,4 +420,3 @@ export const students: Student[] = [
     { id: "7A9472", name: "SWADHIQ", class: "7th" },
     { id: "692F8D", name: "Muhammad Shammas", class: "7th" },
 ];
-

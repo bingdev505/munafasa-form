@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +38,7 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { updateSheet } from "@/app/actions/update-sheet";
-import { students, classes } from "@/app/lib/student-data";
+import { students, classes, type Student } from "@/app/lib/student-data";
 import { cn } from "@/lib/utils";
 
 
@@ -60,6 +60,7 @@ export default function Home() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [studentNamePopoverOpen, setStudentNamePopoverOpen] = useState(false);
+  const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,11 +72,26 @@ export default function Home() {
   });
 
   const selectedClass = form.watch("class");
+  const selectedStudentName = form.watch("student_name");
 
   const filteredStudents = useMemo(() => {
     if (!selectedClass) return [];
     return students.filter((student) => student.class === selectedClass);
   }, [selectedClass]);
+
+  // Check local storage when student selection changes
+  useEffect(() => {
+    if (selectedStudentName) {
+      const student = students.find(s => s.name === selectedStudentName);
+      if (student && localStorage.getItem(`submitted_${student.id}`)) {
+        setIsAlreadySubmitted(true);
+      } else {
+        setIsAlreadySubmitted(false);
+      }
+    } else {
+      setIsAlreadySubmitted(false);
+    }
+  }, [selectedStudentName]);
 
   // Reset student_name when class changes
   const handleClassChange = (value: string) => {
@@ -84,6 +100,16 @@ export default function Home() {
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const student = students.find(s => s.name === values.student_name);
+    if (!student) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Student",
+            description: "The selected student could not be found.",
+        });
+        return;
+    }
+
     startTransition(async () => {
         try {
             const dataToSubmit = {
@@ -98,6 +124,9 @@ export default function Home() {
                     title: "Success!",
                     description: "Your attendance has been recorded in the Google Sheet.",
                 });
+                // Save to local storage on success
+                localStorage.setItem(`submitted_${student.id}`, 'true');
+                setIsAlreadySubmitted(true);
                 form.reset();
             } else {
                 toast({
@@ -262,9 +291,9 @@ export default function Home() {
                           </FormItem>
                       )}
                   />
-                  <Button type="submit" disabled={isPending} className="w-full">
+                  <Button type="submit" disabled={isPending || isAlreadySubmitted} className="w-full">
                       {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Submit
+                      {isAlreadySubmitted ? "Submitted" : "Submit"}
                   </Button>
               </form>
               </Form>
