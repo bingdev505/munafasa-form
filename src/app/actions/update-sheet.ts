@@ -14,15 +14,15 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-// This is where you'll put your Google Sheet ID.
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const SHEET_NAME = 'Sheet1'; 
+// Assumes your data is on a sheet named 'Sheet1'. Change if necessary.
+const SHEET_NAME = 'Sheet1';
 
 async function getGoogleSheetsClient() {
     if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
         throw new Error('Google service account credentials are not set in the environment variables.');
     }
-    
+
     const auth = new google.auth.JWT(
         process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         undefined,
@@ -35,43 +35,37 @@ async function getGoogleSheetsClient() {
 
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
     if (!SPREADSHEET_ID) {
-        return { success: false, error: 'Google Sheet ID is not configured in the environment variables.' };
+        return { success: false, error: 'Google Sheet ID is not configured.' };
     }
-    
+
     try {
         const sheets = await getGoogleSheetsClient();
-        
-        // 1. Read the entire sheet to find the row with the matching ID.
-        const getRowsResponse = await sheets.spreadsheets.values.get({
+
+        // 1. Find the row for the given student ID.
+        const idColumnValues = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:A`, // Assuming IDs are in column A
+            range: `${SHEET_NAME}!A:A`,
         });
 
-        const rows = getRowsResponse.data.values;
-        if (!rows || rows.length === 0) {
-            return { success: false, error: 'Sheet is empty or could not be read.' };
-        }
+        const allIds = idColumnValues.data.values?.flat() ?? [];
+        // Ensure we do a string comparison as sheet values can be numbers
+        const rowIndex = allIds.findIndex(id => String(id) === String(data.student_id)) + 1;
 
-        // Find the row index that matches the student_id. +1 because sheets are 1-indexed.
-        const rowIndex = rows.findIndex(row => row[0] === data.student_id) + 1;
-
-        if (rowIndex === 0) { // findIndex returns -1 if not found, so it becomes 0 here.
-             return { success: false, error: `Student ID "${data.student_id}" not found in the sheet. Make sure the ID column in your sheet is correct.` };
+        if (rowIndex === 0) {
+            return { success: false, error: `Student with ID ${data.student_id} not found.` };
         }
 
         // 2. Update the specific row with the new data.
-        // Assuming your columns are in order: ID, Class, Name, Males, Females, Reach Time
-        // We start updating from Column B, since Column A (ID) is just for lookup.
-        const updateRange = `${SHEET_NAME}!B${rowIndex}:F${rowIndex}`;
+        // Assuming your columns are: A:ID, B:Classes, C:Students, D:Males, E:Females, F:Reach Time
+        // We will update the range D:F for the found row.
+        const updateRange = `${SHEET_NAME}!D${rowIndex}:F${rowIndex}`;
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
             range: updateRange,
-            valueInputOption: 'USER_ENTERED',
+            valueInputOption: 'RAW',
             requestBody: {
                 values: [
                     [
-                        data.class,
-                        data.student_name,
                         data.number_of_males,
                         data.number_of_females,
                         data.reach_time,
@@ -83,9 +77,9 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         return { success: true };
     } catch (err: any) {
         console.error('Error updating Google Sheet:', err);
-        if(err.code === 403) {
-            return { success: false, error: `Permission denied. Make sure the service account has editor access to the Google Sheet. Details: ${err.message}` };
+        if (err.code === 403) {
+            return { success: false, error: `Permission denied. Please make sure the service account with email ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL} has "Editor" permissions on the Google Sheet.` };
         }
-        return { success: false, error: `Failed to update sheet. Please check your configuration and that the API is enabled. Details: ${err.message}` };
+        return { success: false, error: `Failed to update sheet: ${err.message}` };
     }
 }

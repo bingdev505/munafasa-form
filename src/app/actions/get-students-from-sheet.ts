@@ -39,7 +39,7 @@ export async function getStudentsFromSheet(): Promise<{ students: Student[]; cla
     try {
         const sheets = await getGoogleSheetsClient();
         
-        // Fetches columns A, B, and C. Assumes A=ID, B=Name, C=Class.
+        // Fetches columns A, B, and C. Assumes A=ID, B=Class, C=Name.
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: `${SHEET_NAME}!A2:C`, // Starts from row 2 to skip header
@@ -52,8 +52,8 @@ export async function getStudentsFromSheet(): Promise<{ students: Student[]; cla
 
         const students: Student[] = rows.map((row) => ({
             id: row[0],
-            name: row[1],
-            class: row[2],
+            name: row[2], // Corrected: "Students" is in column C
+            class: row[1], // Corrected: "Classes" is in column B
         })).filter(s => s.id && s.name && s.class); // Filter out any empty rows
 
         const classes = [...new Set(students.map(s => s.class))].sort();
