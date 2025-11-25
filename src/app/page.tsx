@@ -38,7 +38,6 @@ import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { getClassData, ClassData } from "@/app/actions/get-class-data";
 import { submitAttendance } from "@/app/actions/submit-attendance";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
@@ -50,7 +49,7 @@ const FormSchema = z.object({
 
 type FormData = z.infer<typeof FormSchema>;
 
-type Student = { id: string; name: string, male?: number, female?: number, when_reach?: string };
+type Student = { id: string; name: string, male?: number | null, female?: number | null, when_reach?: string | null };
 
 const LOCAL_STORAGE_KEY = 'attendance_submitted_student_id';
 
@@ -164,17 +163,16 @@ export default function AttendancePage() {
 
   if (submittedStudentId) {
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-gray-50">
-            <Card className="w-full max-w-lg shadow-lg">
+        <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50">
+            <Card className="w-full max-w-md shadow-lg">
                 <CardHeader>
-                    <CardTitle>Attendance Submitted</CardTitle>
+                    <CardTitle className="text-2xl">Attendance Submitted</CardTitle>
                     <CardDescription>
                         Your attendance has already been recorded from this device.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-center">
-                    <p>If you need to make changes, please contact an administrator.</p>
-                    <Button onClick={handleResetDevice} variant="secondary">
+                    <Button onClick={handleResetDevice} variant="secondary" className="w-full sm:w-auto">
                         Submit for Another Student
                     </Button>
                 </CardContent>
@@ -184,10 +182,10 @@ export default function AttendancePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-gray-50">
-      <Card className="w-full max-w-lg shadow-lg">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle>Meeting Attendance</CardTitle>
+          <CardTitle className="text-2xl">Meeting Attendance</CardTitle>
           <CardDescription>
             Select your class and name to record your attendance.
           </CardDescription>
@@ -241,9 +239,11 @@ export default function AttendancePage() {
                                 className="w-full justify-between"
                                 disabled={!selectedClass}
                             >
+                                <span className="truncate">
                                 {field.value
                                     ? studentsInClass.find((student) => student.id.toString() === field.value)?.name
                                     : "Select your name"}
+                                </span>
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
@@ -265,8 +265,7 @@ export default function AttendancePage() {
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                hasSubmitted(student) ? "opacity-100 text-green-500" : "opacity-0",
-                                                field.value === student.id.toString() && "opacity-100 text-green-500"
+                                                (hasSubmitted(student) || field.value === student.id.toString()) ? "opacity-100 text-green-500" : "opacity-0"
                                             )}
                                         />
                                         {student.name}
@@ -286,7 +285,7 @@ export default function AttendancePage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="male">Number of Males</Label>
                 <Input

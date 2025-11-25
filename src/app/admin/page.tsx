@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, ChangeEvent, useMemo } from "react";
@@ -221,7 +220,7 @@ export default function AdminPage() {
     const result = await updateAttendance(editingEntry.id, data);
     if (result.success) {
       fetchAttendance();
-      setEditingEntry(null);
+      setEditingEntry(null); // This will close the dialog
       toast({ title: "Success", description: "Record updated successfully." });
     } else {
       toast({ variant: "destructive", title: "Update Failed", description: result.message });
@@ -280,7 +279,7 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 10 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
@@ -482,4 +481,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
