@@ -6,9 +6,9 @@ const SubmissionSchema = z.object({
   class: z.string(),
   student_id: z.string(),
   student_name: z.string(),
-  number_of_males: z.number(),
-  number_of_females: z.number(),
-  reach_time: z.string(),
+  number_of_males: z.number().optional(),
+  number_of_females: z.number().optional(),
+  reach_time: z.string().optional(),
 });
 
 export async function saveSubmissionToGoogleSheet(
