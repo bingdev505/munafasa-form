@@ -37,6 +37,7 @@ const formSchema = z.object({
         (a) => parseInt(z.string().parse(a), 10),
         z.number().positive().min(0, "Number of females must be a positive number.")
     ),
+    reach_time: z.string().min(1, "Arrival time is required."),
 });
 
 export default function Home() {
@@ -50,6 +51,7 @@ export default function Home() {
       student_name: "",
       number_of_males: 0,
       number_of_females: 0,
+      reach_time: "",
     },
   });
 
@@ -143,6 +145,28 @@ export default function Home() {
                                 <FormControl>
                                     <Input type="number" placeholder="Enter number of females" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
                                 </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="reach_time"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>When will you reach? *</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a time" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="29th">29th</SelectItem>
+                                        <SelectItem value="30th 9:00am">30th 9:00am</SelectItem>
+                                        <SelectItem value="30th 12:00">30th 12:00</SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <FormMessage />
                                 </FormItem>
                             )}
