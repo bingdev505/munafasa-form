@@ -353,8 +353,16 @@ export default function Home() {
                         )}
                     />
                     <Button type="submit" disabled={isPending || isAlreadySubmitted || connectionStatus.status !== 'success'} className="w-full">
-                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isAlreadySubmitted ? "Submitted" : "Submit"}
+                        {isPending ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : isAlreadySubmitted ? (
+                            "Submitted"
+                        ) : (
+                            "Submit"
+                        )}
                     </Button>
                 </form>
                 </Form>
@@ -364,3 +372,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
