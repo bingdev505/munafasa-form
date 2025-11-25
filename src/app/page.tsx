@@ -174,13 +174,6 @@ export default function AttendancePage() {
                 </CardHeader>
                 <CardContent className="space-y-4 text-center">
                     <p>If you need to make changes, please contact an administrator.</p>
-                     <p>
-                        Admins can edit records in the{' '}
-                        <Link href="/admin" className="text-primary underline">
-                            Admin Dashboard
-                        </Link>
-                        .
-                    </p>
                     <Button onClick={handleResetDevice} variant="secondary">
                         Submit for Another Student
                     </Button>
