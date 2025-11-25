@@ -38,6 +38,7 @@ import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { getClassData, ClassData } from "@/app/actions/get-class-data";
 import { submitAttendance } from "@/app/actions/submit-attendance";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
@@ -51,6 +52,8 @@ type FormData = z.infer<typeof FormSchema>;
 
 type Student = { id: string; name: string, male?: number, female?: number, when_reach?: string };
 
+const LOCAL_STORAGE_KEY = 'attendance_submitted_student_id';
+
 export default function AttendancePage() {
   const [classData, setClassData] = useState<ClassData>({});
   const [studentsInClass, setStudentsInClass] = useState<Student[]>([]);
@@ -62,6 +65,7 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [comboboxOpen, setComboboxOpen] = useState(false);
+  const [submittedStudentId, setSubmittedStudentId] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -74,16 +78,19 @@ export default function AttendancePage() {
     },
   });
 
+  useEffect(() => {
+    const storedStudentId = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedStudentId) {
+      setSubmittedStudentId(storedStudentId);
+    }
+  }, []);
+
   const selectedClass = form.watch("class");
   const selectedStudentId = form.watch("student");
 
   const fetchClassData = async () => {
     setIsLoading(true);
     const data = await getClassData();
-    // We need to fetch the full attendance record to know who has submitted
-    // Let's assume getClassData can be modified or we use another action
-    // For now, let's simulate this by modifying the data structure.
-    // This part would ideally be a more complex fetch.
     setClassData(data);
     setIsLoading(false);
   };
@@ -121,7 +128,6 @@ export default function AttendancePage() {
     }
   }, [selectedStudentId, studentsInClass, form]);
 
-
   const onSubmit = async (data: FormData) => {
     setIsPending(true);
     setSubmissionStatus(null);
@@ -137,11 +143,9 @@ export default function AttendancePage() {
     setSubmissionStatus(result);
 
     if (result.success) {
-      // Refetch data to update submission status (the checkmark)
+      localStorage.setItem(LOCAL_STORAGE_KEY, data.student);
+      setSubmittedStudentId(data.student);
       await fetchClassData();
-      form.reset();
-      setStudentsInClass([]);
-      setIsEditing(false);
     }
 
     setIsPending(false);
@@ -149,6 +153,41 @@ export default function AttendancePage() {
   
   const hasSubmitted = (student: Student) => {
       return student.when_reach || (student.male && student.male > 0) || (student.female && student.female > 0);
+  }
+
+  const handleResetDevice = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setSubmittedStudentId(null);
+    setSubmissionStatus(null);
+    form.reset();
+  }
+
+  if (submittedStudentId) {
+    return (
+        <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-gray-50">
+            <Card className="w-full max-w-lg shadow-lg">
+                <CardHeader>
+                    <CardTitle>Attendance Submitted</CardTitle>
+                    <CardDescription>
+                        Your attendance has already been recorded from this device.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-center">
+                    <p>If you need to make changes, please contact an administrator.</p>
+                     <p>
+                        Admins can edit records in the{' '}
+                        <Link href="/admin" className="text-primary underline">
+                            Admin Dashboard
+                        </Link>
+                        .
+                    </p>
+                    <Button onClick={handleResetDevice} variant="secondary">
+                        Submit for Another Student
+                    </Button>
+                </CardContent>
+            </Card>
+        </main>
+    )
   }
 
   return (
@@ -233,8 +272,8 @@ export default function AttendancePage() {
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                field.value === student.id.toString() ? "opacity-100" : "opacity-0",
-                                                hasSubmitted(student) && "opacity-100 text-green-500"
+                                                hasSubmitted(student) ? "opacity-100 text-green-500" : "opacity-0",
+                                                field.value === student.id.toString() && "opacity-100 text-green-500"
                                             )}
                                         />
                                         {student.name}
@@ -326,7 +365,7 @@ export default function AttendancePage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button type="submit" className="w-full" disabled={isPending || !selectedStudentId}>
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
