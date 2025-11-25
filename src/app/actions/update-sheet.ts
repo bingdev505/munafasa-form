@@ -3,6 +3,22 @@
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { students } from '@/app/lib/student-data';
+import fs from 'fs';
+import path from 'path';
+
+// IMPORTANT: Make sure to create a credentials.json file in the root of your project
+// with the service account key you downloaded from Google Cloud.
+function getCredentials() {
+    try {
+        const credentialsPath = path.join(process.cwd(), 'credentials.json');
+        const credentialsFile = fs.readFileSync(credentialsPath, 'utf8');
+        return JSON.parse(credentialsFile);
+    } catch (error) {
+        console.error('Error reading credentials.json:', error);
+        return null;
+    }
+}
+
 
 const formSchema = z.object({
     class: z.string(),
@@ -20,21 +36,33 @@ const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
 const SHEET_NAME = 'Sheet1'; 
 
 async function getGoogleSheetsClient() {
-    // This is where you'll configure your authentication.
-    // For local development, you can use a service account key file.
-    // For production on Google Cloud, Application Default Credentials will be used automatically.
-    const auth = new google.auth.GoogleAuth({
-        // You'll need to create credentials in Google Cloud Console and point to the key file.
-        // e.g., keyFile: 'path/to/your/credentials.json'
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+    const credentials = getCredentials();
+    if (!credentials) {
+        throw new Error('Failed to load credentials. Make sure credentials.json exists in the project root.');
+    }
+
+    const auth = new google.auth.JWT(
+        credentials.client_email,
+        undefined,
+        credentials.private_key,
+        ['https://www.googleapis.com/auth/spreadsheets']
+    );
 
     const authClient = await auth.getClient();
-    return google.sheets({ version: 'v4', auth: authClient });
+    return google.sheets({ version: 'v4', auth: authClient as any });
 }
 
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
+    const credentials = getCredentials();
+    if (!credentials) {
+        return { success: false, error: 'Failed to load credentials. Make sure credentials.json exists in the project root.' };
+    }
+    
     try {
+        if (!SPREADSHEET_ID || SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID') {
+            return { success: false, error: 'Spreadsheet ID is not configured. Please update it in src/app/actions/update-sheet.ts' };
+        }
+        
         const sheets = await getGoogleSheetsClient();
 
         // Find the student's ID based on their name.
@@ -86,6 +114,12 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
     } catch (err: any) {
         console.error('Error updating Google Sheet:', err);
         // Provide a more user-friendly error message
+        if (err.message.includes('Unable to parse credentials') || err.message.includes('no such file')) {
+            return { success: false, error: 'Failed to parse credentials. Make sure your credentials.json file exists in the project root and is correctly formatted.' };
+        }
+        if(err.code === 403) {
+            return { success: false, error: `Permission denied. Make sure the service account has access to the Google Sheet. Details: ${err.message}` };
+        }
         return { success: false, error: `Failed to update sheet. Please check your configuration. Details: ${err.message}` };
     }
 }
