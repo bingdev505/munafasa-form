@@ -5,6 +5,15 @@ import { useEffect, useState, ChangeEvent } from "react";
 import { getAttendance } from "@/app/actions/get-attendance";
 import { saveImportedAttendance } from "@/app/actions/save-attendance";
 import Papa from "papaparse";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Attendance {
   id: number;
@@ -103,11 +112,55 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
+        <div className="flex justify-between items-center mb-4">
+          <Skeleton className="h-10 w-64" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead><Skeleton className="h-5 w-10" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-48" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-40" /></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
   }
 
   return (
@@ -118,12 +171,12 @@ export default function AdminPage() {
         <input
           type="text"
           placeholder="Filter by name..."
-          className="border p-2 rounded"
+          className="border p-2 rounded w-64"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
-        <div className="flex items-center">
-          <label htmlFor="import-csv" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer mr-2">
+        <div className="flex items-center gap-2">
+          <label htmlFor="import-csv" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
             Import CSV
           </label>
           <input
@@ -132,6 +185,7 @@ export default function AdminPage() {
             accept=".csv"
             onChange={handleImport}
             className="hidden"
+            disabled={importing}
           />
           <button
             onClick={downloadCSV}
@@ -141,35 +195,37 @@ export default function AdminPage() {
           </button>
         </div>
       </div>
-      {importing && <p>Importing...</p>}
+      {importing && <p className="text-blue-500">Importing data, please wait...</p>}
       {importError && <p className="text-red-500">{importError}</p>}
 
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">ID</th>
-            <th className="py-2 px-4 border-b">Name</th>
-            <th className="py-2 px-4 border-b">Class</th>
-            <th className="py-2 px-4 border-b">Male</th>
-            <th className="py-2 px-4 border-b">Female</th>
-            <th className="py-2 px-4 border-b">When Reach</th>
-            <th className="py-2 px-4 border-b">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAttendance.map((entry) => (
-            <tr key={entry.id}>
-              <td className="py-2 px-4 border-b text-center">{entry.id}</td>
-              <td className="py-2 px-4 border-b">{entry.name}</td>
-              <td className="py-2 px-4 border-b">{entry.class}</td>
-              <td className="py-2 px-4 border-b text-center">{entry.male}</td>
-              <td className="py-2 px-4 border-b text-center">{entry.female}</td>
-              <td className="py-2 px-4 border-b text-center">{entry.when_reach}</td>
-              <td className="py-2 px-4 border-b text-center">{new Date(entry.created_at).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="rounded-md border mt-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-16">ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Class</TableHead>
+              <TableHead className="text-center">Male</TableHead>
+              <TableHead className="text-center">Female</TableHead>
+              <TableHead className="text-center">When Reach</TableHead>
+              <TableHead className="text-center">Created At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAttendance.map((entry) => (
+              <TableRow key={entry.id}>
+                <TableCell className="font-medium text-center">{entry.id}</TableCell>
+                <TableCell>{entry.name}</TableCell>
+                <TableCell>{entry.class}</TableCell>
+                <TableCell className="text-center">{entry.male}</TableCell>
+                <TableCell className="text-center">{entry.female}</TableCell>
+                <TableCell className="text-center">{entry.when_reach}</TableCell>
+                <TableCell className="text-center">{new Date(entry.created_at).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
