@@ -66,7 +66,8 @@ export async function saveSubmission(data: FormData): Promise<{ success: boolean
         if (result.data.updates?.updatedCells && result.data.updates.updatedCells > 0) {
             return { success: true };
         } else {
-            return { success: false, error: 'The append operation was sent, but no cells were changed.' };
+            // This case can happen if the API call succeeds but reports no cells updated.
+            return { success: false, error: 'The append operation was sent, but Google Sheets reported no cells were changed.' };
         }
 
     } catch (err: any) {
@@ -75,6 +76,7 @@ export async function saveSubmission(data: FormData): Promise<{ success: boolean
             return { success: false, error: `Permission denied. Please make sure the service account email has "Editor" permissions on the Google Sheet.` };
         }
         if (err.message?.includes('Unable to parse range')) {
+            // This error often means the 'Submissions' sheet does not exist.
             return { success: false, error: `Sheet named '${SHEET_NAME}' not found. Please create it in your Google Sheet.` };
         }
         return { success: false, error: `Failed to save to sheet: ${err.message}` };
