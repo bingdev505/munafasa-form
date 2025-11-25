@@ -1,3 +1,4 @@
+
 "use server";
 
 import { z } from "zod";
@@ -14,10 +15,12 @@ const SubmissionSchema = z.object({
 export async function saveSubmissionToGoogleSheet(
   submissionData: z.infer<typeof SubmissionSchema>
 ) {
+  console.log("Received submission data:", JSON.stringify(submissionData, null, 2));
+
   const parsedData = SubmissionSchema.safeParse(submissionData);
 
   if (!parsedData.success) {
-    console.error("Invalid submission data:", parsedData.error);
+    console.error("Invalid submission data:", parsedData.error.flatten());
     return {
       success: false,
       message: "Invalid data format provided.",
