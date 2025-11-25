@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,22 +22,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+  } from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { updateSheet } from "@/app/actions/update-sheet";
+import { students, classes } from "@/app/lib/student-data";
+import { cn } from "@/lib/utils";
+
 
 const formSchema = z.object({
-    student_id: z.string().min(1, "Student ID is required."),
     class: z.string().min(1, "Class is required."),
     student_name: z.string().min(1, "Student name is required."),
     number_of_males: z.preprocess(
         (a) => parseInt(z.string().parse(a), 10),
-        z.number().positive().min(0, "Number of males must be a positive number.")
+        z.number().min(0, "Number of males must be a non-negative number.")
     ),
     number_of_females: z.preprocess(
         (a) => parseInt(z.string().parse(a), 10),
-        z.number().positive().min(0, "Number of females must be a positive number.")
+        z.number().min(0, "Number of females must be a non-negative number.")
     ),
     reach_time: z.string().min(1, "Arrival time is required."),
 });
@@ -45,11 +59,11 @@ const formSchema = z.object({
 export default function Home() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [studentNamePopoverOpen, setStudentNamePopoverOpen] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      student_id: "",
       class: "",
       student_name: "",
       number_of_males: 0,
@@ -57,6 +71,19 @@ export default function Home() {
       reach_time: "",
     },
   });
+
+  const selectedClass = form.watch("class");
+
+  const filteredStudents = useMemo(() => {
+    if (!selectedClass) return [];
+    return students.filter((student) => student.class === selectedClass);
+  }, [selectedClass]);
+
+  // Reset student_name when class changes
+  const handleClassChange = (value: string) => {
+    form.setValue("class", value);
+    form.setValue("student_name", "");
+  }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
@@ -95,65 +122,89 @@ export default function Home() {
           <CardContent>
               <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                      control={form.control}
-                      name="student_id"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Student ID *</FormLabel>
-                          <FormControl>
-                              <Input placeholder="Enter your Student ID" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                  />
-                  <FormField
-                      control={form.control}
-                      name="class"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Class *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                              <SelectTrigger>
-                                  <SelectValue placeholder="Select a class" />
-                              </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                  <SelectItem value="Mathematics">Mathematics</SelectItem>
-                                  <SelectItem value="Science">Science</SelectItem>
-                                  <SelectItem value="History">History</SelectItem>
-                                  <SelectItem value="English">English</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                  />
-                  <FormField
-                      control={form.control}
-                      name="student_name"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Student Name *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                              <SelectTrigger>
-                                  <SelectValue placeholder="Select a student" />
-                              </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                  <SelectItem value="John Doe">John Doe</SelectItem>
-                                  <SelectItem value="Jane Smith">Jane Smith</SelectItem>
-                                  <SelectItem value="Peter Jones">Peter Jones</SelectItem>
-                                  <SelectItem value="Mary Williams">Mary Williams</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                  />
+                <FormField
+                    control={form.control}
+                    name="class"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Class *</FormLabel>
+                        <Select onValueChange={handleClassChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {classes.map((c) => (
+                                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="student_name"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Student Name *</FormLabel>
+                            <Popover open={studentNamePopoverOpen} onOpenChange={setStudentNamePopoverOpen}>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className={cn(
+                                        "w-full justify-between",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    disabled={!selectedClass}
+                                    >
+                                    {field.value
+                                        ? filteredStudents.find(
+                                            (student) => student.name === field.value
+                                        )?.name
+                                        : "Select a student"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search student..." />
+                                    <CommandEmpty>No student found.</CommandEmpty>
+                                    <CommandGroup>
+                                    {filteredStudents.map((student) => (
+                                        <CommandItem
+                                        value={student.name}
+                                        key={student.id}
+                                        onSelect={() => {
+                                            form.setValue("student_name", student.name);
+                                            setStudentNamePopoverOpen(false);
+                                        }}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            student.name === field.value
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                        />
+                                        {student.name}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -162,7 +213,7 @@ export default function Home() {
                             <FormItem>
                             <FormLabel>Number of Males *</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
+                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.valueAsNumber)} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -175,7 +226,7 @@ export default function Home() {
                             <FormItem>
                             <FormLabel>Number of Females *</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
+                                <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? '' : e.target.valueAsNumber)} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>

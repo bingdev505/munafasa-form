@@ -2,11 +2,11 @@
 
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { students } from '@/app/lib/student-data';
 
 const formSchema = z.object({
-    student_id: z.string(),
     class: z.string(),
-    student_name: z.string(),
+    student_name: z.string(), // This is the student's name now, not the ID
     number_of_males: z.number(),
     number_of_females: z.number(),
     reach_time: z.string(),
@@ -36,6 +36,13 @@ async function getGoogleSheetsClient() {
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
     try {
         const sheets = await getGoogleSheetsClient();
+
+        // Find the student's ID based on their name.
+        const student = students.find(s => s.name === data.student_name);
+        if (!student) {
+            return { success: false, error: `Student "${data.student_name}" not found.` };
+        }
+        const studentId = student.id;
         
         // 1. Read the entire sheet to find the row with the matching ID.
         const getRowsResponse = await sheets.spreadsheets.values.get({
@@ -49,10 +56,10 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         }
 
         // Find the row index that matches the student_id. +1 because sheets are 1-indexed.
-        const rowIndex = rows.findIndex(row => row[0] === data.student_id) + 1;
+        const rowIndex = rows.findIndex(row => row[0] === studentId) + 1;
 
         if (rowIndex === 0) { // findIndex returns -1 if not found, so it becomes 0 here.
-            return { success: false, error: `Student ID "${data.student_id}" not found.` };
+            return { success: false, error: `Student ID "${studentId}" not found in the sheet.` };
         }
 
         // 2. Update the specific row with the new data.
