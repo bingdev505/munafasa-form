@@ -36,7 +36,7 @@ async function getGoogleSheetsClient() {
 }
 
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
-    if (!SPREADSHEE_ID) {
+    if (!SPREADSHEET_ID) {
         return { success: false, error: 'Google Sheet ID is not configured in the environment variables.' };
     }
     
@@ -67,7 +67,7 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         const rowIndex = rows.findIndex(row => row[0] === studentId) + 1;
 
         if (rowIndex === 0) { // findIndex returns -1 if not found, so it becomes 0 here.
-             return { success: false, error: `Student ID "${studentId}" not found in the sheet.` };
+             return { success: false, error: `Student ID "${studentId}" not found in the sheet. Make sure the ID column in your sheet is correct.` };
         }
 
         // 2. Update the specific row with the new data.
@@ -94,8 +94,8 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
     } catch (err: any) {
         console.error('Error updating Google Sheet:', err);
         if(err.code === 403) {
-            return { success: false, error: `Permission denied. Make sure the service account has access to the Google Sheet. Details: ${err.message}` };
+            return { success: false, error: `Permission denied. Make sure the service account has editor access to the Google Sheet. Details: ${err.message}` };
         }
-        return { success: false, error: `Failed to update sheet. Please check your configuration. Details: ${err.message}` };
+        return { success: false, error: `Failed to update sheet. Please check your configuration and that the API is enabled. Details: ${err.message}` };
     }
 }
