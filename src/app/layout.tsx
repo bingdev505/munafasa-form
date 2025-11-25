@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Home, PlusCircle, Settings } from "lucide-react";
+import { Home, PlusCircle } from "lucide-react";
 import "./globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -16,12 +16,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
   title: "FormFlow",
-  description: "Create and share forms easily. Submissions are saved directly to Google Sheets.",
+  description: "Create and share forms easily.",
 };
 
 export default function RootLayout({
@@ -67,14 +66,6 @@ export default function RootLayout({
                     <Link href="/forms/create">
                       <PlusCircle />
                       <span>Create Form</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Settings" >
-                    <Link href="#">
-                      <Settings />
-                      <span>Settings</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

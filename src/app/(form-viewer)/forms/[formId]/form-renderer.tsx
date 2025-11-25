@@ -16,16 +16,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2 } from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 
 import type { Form as FormType, FormField as FormFieldType } from "@/lib/definitions";
 import { submitFormAction } from "@/app/actions";
@@ -42,28 +41,23 @@ const generateSchema = (fields: FormFieldType[]) => {
     let fieldSchema: z.ZodType<any, any>;
 
     switch (field.type) {
-      case "email":
-        fieldSchema = z.string().email({ message: "Invalid email address." });
+      case "select":
+        fieldSchema = z.string();
         break;
-      case "date":
-        fieldSchema = z.date();
+      case "number":
+        fieldSchema = z.preprocess(
+          (a) => parseInt(z.string().parse(a), 10),
+          z.number().positive().min(0)
+        );
         break;
       case "text":
-      case "textarea":
-      case "multiple-choice":
       default:
         fieldSchema = z.string();
         break;
     }
 
     if (field.required) {
-      if(field.type === 'date') {
-        fieldSchema = fieldSchema.refine(date => date !== null, { message: `${field.label} is required.` });
-      } else {
-        fieldSchema = (fieldSchema as z.ZodString).min(1, {
-          message: `${field.label} is required.`,
-        });
-      }
+      fieldSchema = fieldSchema.refine(data => data !== null && data !== '' && data !== undefined, { message: `${field.label} is required.` });
     } else {
         fieldSchema = fieldSchema.optional().nullable();
     }
@@ -81,7 +75,7 @@ export default function FormRenderer({ form }: FormRendererProps) {
   
   const formHook = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: form.fields.reduce((acc, field) => ({ ...acc, [field.name]: undefined }), {}),
+    defaultValues: form.fields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {}),
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -111,56 +105,22 @@ export default function FormRenderer({ form }: FormRendererProps) {
                 <FormControl>
                   <>
                     {field.type === "text" && <Input placeholder={field.placeholder} {...renderField} />}
-                    {field.type === "email" && <Input placeholder={field.placeholder} {...renderField} />}
-                    {field.type === "textarea" && <Textarea placeholder={field.placeholder} {...renderField} />}
-                    {field.type === "multiple-choice" && (
-                      <RadioGroup
-                        onValueChange={renderField.onChange}
-                        defaultValue={renderField.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        {field.options?.map((option) => (
-                          <FormItem key={option} className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value={option} />
-                            </FormControl>
-                            <FormLabel className="font-normal">{option}</FormLabel>
-                          </FormItem>
-                        ))}
-                      </RadioGroup>
-                    )}
-                    {field.type === "date" && (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                           <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !renderField.value && "text-muted-foreground"
-                              )}
-                            >
-                              {renderField.value ? (
-                                format(renderField.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={renderField.value}
-                            onSelect={renderField.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                    {field.type === "number" && <Input type="number" placeholder={field.placeholder} {...renderField} />}
+                    {field.type === "select" && (
+                       <Select onValueChange={renderField.onChange} defaultValue={renderField.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder={field.placeholder} />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                           {field.options?.map((option) => (
+                             <SelectItem key={option} value={option}>
+                               {option}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
                     )}
                   </>
                 </FormControl>

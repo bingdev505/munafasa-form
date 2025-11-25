@@ -1,9 +1,8 @@
 export type FormFieldType =
   | "text"
   | "textarea"
-  | "multiple-choice"
-  | "date"
-  | "email";
+  | "select"
+  | "number";
 
 export type FormField = {
   id: string;
