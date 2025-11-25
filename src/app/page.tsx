@@ -38,7 +38,7 @@ import {
 import { Check, ChevronsUpDown, Loader2, Circle, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { updateSheet } from "@/app/actions/update-sheet";
+import { saveSubmission } from "@/app/actions/save-submission";
 import { checkSheetConnection } from "@/app/actions/check-sheet-connection";
 import { getStudentsFromSheet, type Student } from "@/app/actions/get-students-from-sheet";
 import { cn } from "@/lib/utils";
@@ -158,7 +158,7 @@ export default function Home() {
                 number_of_females: values.number_of_females ?? 0,
                 reach_time: values.reach_time ?? "",
             };
-            const result = await updateSheet(dataToSubmit);
+            const result = await saveSubmission(dataToSubmit);
             if (result.success) {
                 toast({
                     title: "Success!",
@@ -179,7 +179,7 @@ export default function Home() {
             toast({
                 variant: "destructive",
                 title: "Uh oh! Something went wrong.",
-                description: "An error occurred while updating the sheet.",
+                description: "An error occurred while saving the submission.",
             });
         }
     });
@@ -372,5 +372,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
