@@ -15,7 +15,6 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-// Assumes your data is on a sheet named 'Sheet1'. Change if necessary.
 const SHEET_NAME = 'Sheet1';
 
 async function getGoogleSheetsClient() {
@@ -44,25 +43,26 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         // 1. Find the row for the given student ID.
         const idColumnValues = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:A`,
+            range: `${SHEET_NAME}!A:A`, // Assumes IDs are in column A
         });
 
         const allIds = idColumnValues.data.values?.flat() ?? [];
-        // Ensure we do a string comparison as sheet values can be numbers
-        const rowIndex = allIds.findIndex(id => String(id) === String(data.student_id)) + 1;
+        // Ensure we do a string comparison as sheet values can be numbers or strings
+        const rowIndex = allIds.findIndex(id => String(id).trim() === String(data.student_id).trim()) + 1;
 
-        if (rowIndex === 0) {
-            return { success: false, error: `Student with ID ${data.student_id} not found.` };
+        if (rowIndex === 0) { // findIndex returns -1 if not found, so +1 makes it 0.
+            return { success: false, error: `Student with ID ${data.student_id} not found in the sheet.` };
         }
 
         // 2. Update the specific row with the new data.
         // Assuming your columns are: A:ID, B:Classes, C:Students, D:Males, E:Females, F:Reach Time
-        // We will update the range D:F for the found row.
+        // We will update the range D[rowIndex]:F[rowIndex].
         const updateRange = `${SHEET_NAME}!D${rowIndex}:F${rowIndex}`;
-        await sheets.spreadsheets.values.update({
+        
+        const result = await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
             range: updateRange,
-            valueInputOption: 'RAW',
+            valueInputOption: 'USER_ENTERED', // More reliable for different data types
             requestBody: {
                 values: [
                     [
@@ -73,8 +73,13 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
                 ],
             },
         });
+        
+        if (result.data.updatedCells && result.data.updatedCells > 0) {
+            return { success: true };
+        } else {
+            return { success: false, error: 'The update was sent, but no cells were changed in the sheet.' };
+        }
 
-        return { success: true };
     } catch (err: any) {
         console.error('Error updating Google Sheet:', err);
         if (err.code === 403) {
