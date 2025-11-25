@@ -35,11 +35,10 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2, Circle, AlertCircle } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { saveSubmission } from "@/app/actions/save-submission";
-import { checkSheetConnection } from "@/app/actions/check-sheet-connection";
 import { cn } from "@/lib/utils";
 
 // Mock Data
@@ -80,24 +79,6 @@ export default function Home() {
   const classes = mockClasses;
   
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-
-  const [connectionStatus, setConnectionStatus] = useState<{
-    status: 'pending' | 'success' | 'error';
-    message: string;
-  }>({ status: 'pending', message: 'Checking Google Sheet connection...' });
-
-  useEffect(() => {
-    async function checkConnection() {
-      const result = await checkSheetConnection();
-      if (result.success) {
-        setConnectionStatus({ status: 'success', message: 'Connected to Google Sheet' });
-      } else {
-        setConnectionStatus({ status: 'error', message: result.error || 'Failed to connect' });
-      }
-    }
-    
-    checkConnection();
-  }, []);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -178,20 +159,6 @@ export default function Home() {
 
   const totalStudents = students.length;
 
-  const StatusIndicator = () => (
-    <div className="mb-4 flex items-center gap-2 rounded-lg border p-3 text-sm">
-        {connectionStatus.status === 'pending' && <Loader2 className="h-4 w-4 animate-spin" />}
-        {connectionStatus.status === 'success' && <Circle className="h-4 w-4 fill-green-500 text-green-500" />}
-        {connectionStatus.status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
-        <span className={cn(
-            connectionStatus.status === 'error' && 'text-red-500 font-medium',
-            connectionStatus.status === 'success' && 'text-muted-foreground'
-        )}>
-            {connectionStatus.message}
-        </span>
-    </div>
-  );
-
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <Card className="w-full max-w-lg shadow-2xl">
@@ -201,8 +168,6 @@ export default function Home() {
               <p className="text-sm text-muted-foreground pt-2">Total Students: {totalStudents}</p>
           </CardHeader>
           <CardContent>
-              <StatusIndicator />
-
               {submissionError && <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive mb-4"><AlertCircle className="inline-block h-4 w-4 mr-2"/>Submission Error: {submissionError}</div>}
               
               <Form {...form}>
@@ -342,7 +307,7 @@ export default function Home() {
                           </FormItem>
                       )}
                   />
-                  <Button type="submit" disabled={isPending || isAlreadySubmitted || connectionStatus.status !== 'success'} className="w-full">
+                  <Button type="submit" disabled={isPending || isAlreadySubmitted} className="w-full">
                       {isPending ? (
                           <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
