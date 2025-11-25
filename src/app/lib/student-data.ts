@@ -5,7 +5,7 @@ export type Student = {
     class: string;
 };
 
-export const classes = ["Avval", "Sani", "Fiqh", "Adab", "Diploma"];
+export const classes = ["Avval", "Sani", "Fiqh", "Adab", "Diploma", "Mukthasar", "7th"];
 
 export const students: Student[] = [
     { id: "B13555", name: "MUHAMMAD NABEEL", class: "Avval" },
@@ -395,4 +395,29 @@ export const students: Student[] = [
     { id: "842D03", name: "MD AFZAL ARBI", class: "Diploma" },
     { id: "1E3113", name: "ISHAQ SAQIB ADHAL", class: "Diploma" },
     { id: "C76221", name: "JAMSED AHMAD", class: "Diploma" },
+    { id: "65F6CA", name: "IBRAHIM SK", class: "Diploma" },
+    { id: "1D33AC", name: "JASEEM RAZA", class: "Diploma" },
+    { id: "80DB1B", name: "MD RONI SK", class: "Diploma" },
+    { id: "B55A4B", name: "MD SHAKIR ALI", class: "Diploma" },
+    { id: "D70D01", name: "RAFIK ANSARI", class: "Diploma" },
+    { id: "A4535D", name: "HARIS MOHAMED", class: "Diploma" },
+    { id: "1AB9F4", name: "MD PARVEJ", class: "Diploma" },
+    { id: "4FD24C", name: "SAEED KHAN", class: "Diploma" },
+    { id: "D8FAE4", name: "MAUHAMMAD SHAREEF PA", class: "Mukthasar" },
+    { id: "333E20", name: "JAMALUDHHEEN KA", class: "Mukthasar" },
+    { id: "8CF772", name: "EBRAHIM BADUSHA", class: "Mukthasar" },
+    { id: "F94592", name: "ABDUL RAHMAN B.H", class: "Mukthasar" },
+    { id: "FC35AC", name: "MAHAMMAD ASHIK", class: "Mukthasar" },
+    { id: "6C30CE", name: "MOHAMMED SALMANUL FARIS", class: "Mukthasar" },
+    { id: "6A9500", name: "MUHAMMED IQBAL", class: "Mukthasar" },
+    { id: "2A6B1D", name: "THAHIR", class: "Mukthasar" },
+    { id: "FA8773", name: "MUHAMMED SAVAD", class: "Mukthasar" },
+    { id: "856334", name: "SAYID MUHLAR MUS'AB THANGAL", class: "7th" },
+    { id: "17B808", name: "AHAMMAD AZARUDDIN", class: "7th" },
+    { id: "B9B340", name: "MOHAMMAD SUHAIL", class: "7th" },
+    { id: "B02D0A", name: "ABDUL MAJID K A", class: "7th" },
+    { id: "F59DF0", name: "SAHAD B E", class: "7th" },
+    { id: "7A9472", name: "SWADHIQ", class: "7th" },
+    { id: "692F8D", name: "Muhammad Shammas", class: "7th" },
 ];
+
