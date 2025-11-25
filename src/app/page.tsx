@@ -361,7 +361,7 @@ export default function Home() {
                         ) : isAlreadySubmitted ? (
                             "Submitted"
                         ) : (
-                            "Submit"
+                            "Go"
                         )}
                     </Button>
                 </form>
