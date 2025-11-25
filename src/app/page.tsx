@@ -2,76 +2,118 @@
 "use client";
 
 import { useState } from "react";
+import { saveAttendance } from "@/app/actions/save-attendance";
 
-export default function AdminPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState("");
+export default function AttendancePage() {
+  const [name, setName] = useState("");
+  const [male, setMale] = useState(0);
+  const [female, setFemale] = useState(0);
+  const [whenReach, setWhenReach] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleLogin = () => {
-    if (username === "Munavvir" && password === "@munavvir") {
-      setIsLoggedIn(true);
-      setError("");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("male", String(male));
+    formData.append("female", String(female));
+    formData.append("when_reach", whenReach);
+
+    const result = await saveAttendance(formData);
+
+    if (result.success) {
+      setMessage("Attendance saved successfully!");
+      // Clear the form
+      setName("");
+      setMale(0);
+      setFemale(0);
+      setWhenReach("");
     } else {
-      setError("Invalid username or password");
+      setMessage(`Error: ${result.error}`);
     }
   };
 
-  if (isLoggedIn) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <h1 className="text-4xl font-bold">Welcome, Munavvir!</h1>
-        <p className="mt-4 text-lg">You are now logged in to the admin page.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <div className="w-full max-w-xs">
-        <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+      <div className="w-full max-w-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+        >
+          <h1 className="text-2xl font-bold mb-6 text-center">
+            Meeting Attendance
+          </h1>
+          {message && <p className="mb-4 text-center">{message}</p>}
           <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="username"
+              htmlFor="name"
             >
-              Username
+              Name
             </label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="username"
+              id="name"
               type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="male"
+            >
+              Number of Males
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="male"
+              type="number"
+              value={male}
+              onChange={(e) => setMale(Number(e.target.value))}
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="female"
+            >
+              Number of Females
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="female"
+              type="number"
+              value={female}
+              onChange={(e) => setFemale(Number(e.target.value))}
             />
           </div>
           <div className="mb-6">
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="password"
+              htmlFor="when_reach"
             >
-              Password
+              When will you reach?
             </label>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-              id="password"
-              type="password"
-              placeholder="******************"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="when_reach"
+              type="time"
+              value={whenReach}
+              onChange={(e) => setWhenReach(e.target.value)}
+              required
             />
-            {error && <p className="text-red-500 text-xs italic">{error}</p>}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <button
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="button"
-              onClick={handleLogin}
+              type="submit"
             >
-              Sign In
+              Submit Attendance
             </button>
           </div>
         </form>
