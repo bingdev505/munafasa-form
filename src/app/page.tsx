@@ -219,10 +219,25 @@ export default function AttendancePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="when_reach">When will you reach?</Label>
-                <Input
-                  id="when_reach"
-                  type="time"
-                  {...form.register("when_reach")}
+                <Controller
+                  name="when_reach"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <SelectTrigger id="when_reach">
+                        <SelectValue placeholder="Select a time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="29th">29th</SelectItem>
+                        <SelectItem value="30th 9:00 am">30th 9:00 am</SelectItem>
+                        <SelectItem value="30th 12:00 pm">30th 12:00 pm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
                 {form.formState.errors.when_reach && (
                   <p className="text-sm text-red-600">
