@@ -13,8 +13,8 @@ export type Student = z.infer<typeof StudentSchema>;
 
 // This is where you'll put your Google Sheet ID.
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-// Assumes your student data is on a sheet named 'Students'. Change if necessary.
-const SHEET_NAME = 'Students'; 
+// Assumes your student data is on a sheet named 'Sheet1'. Change if necessary.
+const SHEET_NAME = 'Sheet1'; 
 
 async function getGoogleSheetsClient() {
     if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
@@ -64,8 +64,8 @@ export async function getStudentsFromSheet(): Promise<{ students: Student[]; cla
          if(err.code === 403) {
             return { students: [], classes: [], error: `Permission denied. Check service account read access to the sheet.` };
         }
-        if(err.code === 404) {
-            return { students: [], classes: [], error: `Sheet or range not found. Check your SPREADSHEET_ID and SHEET_NAME ('${SHEET_NAME}').` };
+        if(err.code === 404 || err.message?.includes('Unable to parse range')) {
+            return { students: [], classes: [], error: `Sheet or range not found. Check your SPREADSHEET_ID and that the sheet is named '${SHEET_NAME}'.` };
         }
         return { students: [], classes: [], error: `Connection failed: ${err.message}` };
     }
