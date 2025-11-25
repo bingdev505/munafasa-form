@@ -69,6 +69,8 @@ export default function Home() {
   const [classes, setClasses] = useState<string[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+
 
   const [connectionStatus, setConnectionStatus] = useState<{
     status: 'pending' | 'success' | 'error';
@@ -138,6 +140,7 @@ export default function Home() {
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setSubmissionError(null);
     const student = students.find(s => s.id === values.student_id);
     if (!student) {
         toast({
@@ -169,18 +172,10 @@ export default function Home() {
                 setIsAlreadySubmitted(true);
                 form.reset();
             } else {
-                toast({
-                    variant: "destructive",
-                    title: "Uh oh! Something went wrong.",
-                    description: result.error || "Could not save to Google Sheet.",
-                });
+                setSubmissionError(result.error || "Could not save to Google Sheet.");
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: "An error occurred while saving the submission.",
-            });
+            setSubmissionError("An unexpected error occurred while saving the submission.");
         }
     });
   }
@@ -220,6 +215,9 @@ export default function Home() {
               <StatusIndicator />
               {dataLoading && <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /> <span className="ml-2">Loading Student Data...</span></div>}
               {dataError && <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"><AlertCircle className="inline-block h-4 w-4 mr-2"/>Failed to load student data: {dataError}</div>}
+              
+              {submissionError && <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive mb-4"><AlertCircle className="inline-block h-4 w-4 mr-2"/>Submission Error: {submissionError}</div>}
+
 
               {!dataLoading && !dataError && (
                 <Form {...form}>
