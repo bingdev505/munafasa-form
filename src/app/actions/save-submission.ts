@@ -28,17 +28,18 @@ export async function saveSubmission(data: FormData): Promise<{ success: boolean
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-            // Use 'no-cors' if you face CORS issues, but a proper deployment handles this.
-            // For Apps Script, we need to handle the redirect.
+            // Apps Script web apps handle CORS, so we don't need 'no-cors'.
+            // The redirect: 'follow' is important because Apps Script can issue redirects.
             redirect: 'follow', 
         });
 
-        // Apps Script doPost returns a JSON response
+        // Apps Script doPost should return a JSON response.
         const result = await response.json();
 
         if (result.success) {
             return { success: true };
         } else {
+            // Forward the error message from the Apps Script
             return { success: false, error: result.error || 'An unknown error occurred in Apps Script.' };
         }
 
