@@ -1,3 +1,4 @@
+
 "use server";
 
 import { supabase } from "@/utils/supabaseClient";
@@ -6,7 +7,7 @@ export async function getAttendance() {
   const { data, error } = await supabase
     .from("attendance")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("id", { ascending: true });
 
   if (error) {
     console.error("Error fetching attendance:", error);

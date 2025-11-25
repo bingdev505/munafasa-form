@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -41,8 +42,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SummaryCard from "@/components/SummaryCard";
 
 interface Attendance {
   id: number;
@@ -67,12 +76,13 @@ type EditFormData = z.infer<typeof editFormSchema>;
 export default function AdminPage() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [filteredAttendance, setFilteredAttendance] = useState<Attendance[]>([]);
-  const [filter, setFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [reachTimeFilter, setReachTimeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Attendance | null>(null);
 
   const { toast } = useToast();
 
@@ -88,7 +98,6 @@ export default function AdminPage() {
       toast({ variant: "destructive", title: "Error", description: error });
     } else {
       setAttendance(data);
-      setFilteredAttendance(data);
     }
     setLoading(false);
   };
@@ -98,17 +107,60 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    setFilteredAttendance(
-      attendance.filter((entry) =>
-        entry.name.toLowerCase().includes(filter.toLowerCase())
-      )
-    );
-  }, [filter, attendance]);
+    let filtered = attendance;
+
+    if (nameFilter) {
+      filtered = filtered.filter((entry) =>
+        entry.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
+
+    if (reachTimeFilter !== "all") {
+      filtered = filtered.filter((entry) => entry.when_reach === reachTimeFilter);
+    }
+
+    setFilteredAttendance(filtered);
+  }, [nameFilter, reachTimeFilter, attendance]);
+
+  const summaryStats = useMemo(() => {
+    const stats = {
+      totalMales: 0,
+      totalFemales: 0,
+      fullTotal: 0,
+      "29th_males": 0,
+      "29th_females": 0,
+      "30th 9:00 am_males": 0,
+      "30th 9:00 am_females": 0,
+      "30th 12:00 pm_males": 0,
+      "30th 12:00 pm_females": 0,
+    };
+
+    for (const entry of attendance) {
+      const males = entry.male || 0;
+      const females = entry.female || 0;
+      stats.totalMales += males;
+      stats.totalFemales += females;
+
+      if (entry.when_reach) {
+        const key_males = `${entry.when_reach}_males` as keyof typeof stats;
+        const key_females = `${entry.when_reach}_females` as keyof typeof stats;
+        if (key_males in stats) {
+          stats[key_males] += males;
+        }
+        if (key_females in stats) {
+          stats[key_females] += females;
+        }
+      }
+    }
+    stats.fullTotal = stats.totalMales + stats.totalFemales;
+
+    return stats;
+  }, [attendance]);
 
   const downloadCSV = () => {
     const headers = ["ID", "Name", "Class", "Male", "Female", "When Reach", "Created At"];
     const rows = filteredAttendance.map((entry) =>
-      [entry.id, entry.name, entry.class, entry.male, entry.female, entry.when_reach, entry.created_at].join(",")
+      [entry.id, entry.name, entry.class, entry.male, entry.female, entry.when_reach, new Date(entry.created_at).toLocaleString()].join(",")
     );
     const csvContent = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -122,7 +174,7 @@ export default function AdminPage() {
     document.body.removeChild(link);
   };
 
-  const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImport = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setImporting(true);
@@ -158,14 +210,18 @@ export default function AdminPage() {
             setImporting(false);
         }
       });
+      // Reset file input
+      event.target.value = '';
     }
   };
 
-  const handleEditSubmit = async (data: EditFormData, id: number) => {
-    const result = await updateAttendance(id, data);
+  const handleEditSubmit = async (data: EditFormData) => {
+    if (!editingEntry) return;
+
+    const result = await updateAttendance(editingEntry.id, data);
     if (result.success) {
       fetchAttendance();
-      setIsEditDialogOpen(false); // Close the dialog on success
+      setEditingEntry(null);
       toast({ title: "Success", description: "Record updated successfully." });
     } else {
       toast({ variant: "destructive", title: "Update Failed", description: result.message });
@@ -183,19 +239,25 @@ export default function AdminPage() {
   };
   
   const openEditDialog = (entry: Attendance) => {
+    setEditingEntry(entry);
     form.reset({
       name: entry.name,
       class: entry.class,
-      male: entry.male || 0,
-      female: entry.female || 0,
-      when_reach: entry.when_reach || "",
+      male: entry.male ?? 0,
+      female: entry.female ?? 0,
+      when_reach: entry.when_reach ?? "",
     });
-    setIsEditDialogOpen(true);
   }
 
   if (loading) {
     return (
       <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+        </div>
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
           <Skeleton className="h-10 w-full md:w-64" />
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
@@ -247,16 +309,50 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-        <Input
-          type="text"
-          placeholder="Filter by name..."
-          className="w-full md:max-w-sm"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-6">
+        <SummaryCard title="Total Males" value={summaryStats.totalMales} />
+        <SummaryCard title="Total Females" value={summaryStats.totalFemales} />
+        <SummaryCard title="Grand Total" value={summaryStats.fullTotal} />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+        <SummaryCard 
+            title="Arriving 29th"
+            value={`M: ${summaryStats["29th_males"]} | F: ${summaryStats["29th_females"]}`}
         />
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-          <label htmlFor="import-csv" className="w-full sm:w-auto text-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+        <SummaryCard 
+            title="Arriving 30th 9:00am"
+            value={`M: ${summaryStats["30th 9:00 am_males"]} | F: ${summaryStats["30th 9:00 am_females"]}`}
+        />
+        <SummaryCard 
+            title="Arriving 30th 12:00pm"
+            value={`M: ${summaryStats["30th 12:00 pm_males"]} | F: ${summaryStats["30th 12:00 pm_females"]}`}
+        />
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row w-full gap-4">
+            <Input
+            type="text"
+            placeholder="Filter by name..."
+            className="w-full md:max-w-xs"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            />
+            <Select value={reachTimeFilter} onValueChange={setReachTimeFilter}>
+                <SelectTrigger className="w-full md:max-w-xs">
+                    <SelectValue placeholder="Filter by reach time" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Reach Times</SelectItem>
+                    <SelectItem value="29th">29th</SelectItem>
+                    <SelectItem value="30th 9:00 am">30th 9:00 am</SelectItem>
+                    <SelectItem value="30th 12:00 pm">30th 12:00 pm</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
+          <label htmlFor="import-csv" className="w-full sm:w-auto text-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer whitespace-nowrap">
             Import CSV
           </label>
           <input
@@ -269,7 +365,7 @@ export default function AdminPage() {
           />
           <Button
             onClick={downloadCSV}
-            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold"
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold whitespace-nowrap"
           >
             Download as CSV
           </Button>
@@ -293,90 +389,97 @@ export default function AdminPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAttendance.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell className="font-medium">{entry.id}</TableCell>
-                <TableCell>{entry.name}</TableCell>
-                <TableCell>{entry.class}</TableCell>
-                <TableCell className="text-center">{entry.male}</TableCell>
-                <TableCell className="text-center">{entry.female}</TableCell>
-                <TableCell>{entry.when_reach}</TableCell>
-                <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
-                <TableCell className="flex items-center justify-center space-x-1">
-                  <Dialog onOpenChange={setIsEditDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(entry)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                     {isEditDialogOpen && (
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Record</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={form.handleSubmit(data => handleEditSubmit(data, entry.id))} className="space-y-4">
-                            <div>
-                                <Label htmlFor="name">Name</Label>
-                                <Input id="name" {...form.register("name")} />
-                                {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
-                            </div>
-                            <div>
-                                <Label htmlFor="class">Class</Label>
-                                <Input id="class" {...form.register("class")} />
-                                {form.formState.errors.class && <p className="text-red-500 text-sm">{form.formState.errors.class.message}</p>}
-                            </div>
-                            <div>
-                                <Label htmlFor="male">Males</Label>
-                                <Input id="male" type="number" {...form.register("male")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="female">Females</Label>
-                                <Input id="female" type="number" {...form.register("female")} />
-                            </div>
-                            <div>
-                                <Label htmlFor="when_reach">When Reach</Label>
-                                <Input id="when_reach" {...form.register("when_reach")} />
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">Cancel</Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={form.formState.isSubmitting}>
-                                    {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                      </DialogContent>
-                     )}
-                  </Dialog>
+            {filteredAttendance.length > 0 ? (
+                filteredAttendance.map((entry) => (
+                <TableRow key={entry.id}>
+                    <TableCell className="font-medium">{entry.id}</TableCell>
+                    <TableCell>{entry.name}</TableCell>
+                    <TableCell>{entry.class}</TableCell>
+                    <TableCell className="text-center">{entry.male}</TableCell>
+                    <TableCell className="text-center">{entry.female}</TableCell>
+                    <TableCell>{entry.when_reach}</TableCell>
+                    <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
+                    <TableCell className="flex items-center justify-center space-x-1">
+                    <Dialog open={editingEntry?.id === entry.id} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
+                        <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(entry)}>
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                            <DialogTitle>Edit Record</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={form.handleSubmit(handleEditSubmit)} className="space-y-4">
+                                <div>
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input id="name" {...form.register("name")} />
+                                    {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
+                                </div>
+                                <div>
+                                    <Label htmlFor="class">Class</Label>
+                                    <Input id="class" {...form.register("class")} />
+                                    {form.formState.errors.class && <p className="text-red-500 text-sm">{form.formState.errors.class.message}</p>}
+                                </div>
+                                <div>
+                                    <Label htmlFor="male">Males</Label>
+                                    <Input id="male" type="number" {...form.register("male")} />
+                                </div>
+                                <div>
+                                    <Label htmlFor="female">Females</Label>
+                                    <Input id="female" type="number" {...form.register("female")} />
+                                </div>
+                                <div>
+                                    <Label htmlFor="when_reach">When Reach</Label>
+                                    <Input id="when_reach" {...form.register("when_reach")} />
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="secondary">Cancel</Button>
+                                    </DialogClose>
+                                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                                        {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the attendance record.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(entry.id)}>
-                          Continue
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TableCell>
-              </TableRow>
-            ))}
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the attendance record.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(entry.id)}>
+                            Continue
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    </TableCell>
+                </TableRow>
+                ))
+            ) : (
+                <TableRow>
+                    <TableCell colSpan={8} className="text-center h-24">
+                        No results found.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
     </div>
   );
 }
+
