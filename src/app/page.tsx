@@ -40,13 +40,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { saveSubmission } from "@/app/actions/save-submission";
 import { checkSheetConnection } from "@/app/actions/check-sheet-connection";
-import { getStudentsFromSheet, type Student } from "@/app/actions/get-students-from-sheet";
 import { cn } from "@/lib/utils";
+
+// Mock Data
+const mockStudents = [
+    { id: '101', name: 'John Doe', class: 'Class A' },
+    { id: '102', name: 'Jane Smith', class: 'Class A' },
+    { id: '103', name: 'Peter Jones', class: 'Class B' },
+    { id: '104', name: 'Mary Johnson', class: 'Class B' },
+    { id: '105', name: 'David Williams', class: 'Class C' },
+];
+
+const mockClasses = ['Class A', 'Class B', 'Class C'];
 
 
 const formSchema = z.object({
     class: z.string().min(1, "Class is required."),
-    // The value will be the student's ID now
+    // The value will be the student's ID
     student_id: z.string().min(1, "Student name is required."),
     number_of_males: z.preprocess(
         (a) => (a === '' || a === undefined ? undefined : parseInt(z.string().parse(a), 10)),
@@ -65,12 +75,11 @@ export default function Home() {
   const [studentNamePopoverOpen, setStudentNamePopoverOpen] = useState(false);
   const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
   
-  const [students, setStudents] = useState<Student[]>([]);
-  const [classes, setClasses] = useState<string[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [dataError, setDataError] = useState<string | null>(null);
+  // Use mock data directly
+  const students = mockStudents;
+  const classes = mockClasses;
+  
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-
 
   const [connectionStatus, setConnectionStatus] = useState<{
     status: 'pending' | 'success' | 'error';
@@ -86,21 +95,8 @@ export default function Home() {
         setConnectionStatus({ status: 'error', message: result.error || 'Failed to connect' });
       }
     }
-
-    async function fetchStudentData() {
-        setDataLoading(true);
-        const { students, classes, error } = await getStudentsFromSheet();
-        if (error) {
-            setDataError(error);
-        } else {
-            setStudents(students);
-            setClasses(classes);
-        }
-        setDataLoading(false);
-    }
     
     checkConnection();
-    fetchStudentData();
   }, []);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -140,7 +136,7 @@ export default function Home() {
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    setSubmissionError(null);
+    setSubmissionError(null); // Clear previous errors
     const student = students.find(s => s.id === values.student_id);
     if (!student) {
         toast({
@@ -150,7 +146,7 @@ export default function Home() {
         });
         return;
     }
-
+      
     startTransition(async () => {
         try {
             const dataToSubmit = {
@@ -172,7 +168,7 @@ export default function Home() {
                 setIsAlreadySubmitted(true);
                 form.reset();
             } else {
-                setSubmissionError(result.error || "Could not save to Google Sheet.");
+                 setSubmissionError(result.error || "Could not save to Google Sheet.");
             }
         } catch (error) {
             setSubmissionError("An unexpected error occurred while saving the submission.");
@@ -202,169 +198,164 @@ export default function Home() {
           <CardHeader>
               <CardTitle className="text-3xl font-bold tracking-tight">Meeting Attendance</CardTitle>
               <CardDescription className="text-muted-foreground">Please fill out the form to confirm your attendance.</CardDescription>
-              {!dataLoading && !dataError && <p className="text-sm text-muted-foreground pt-2">Total Students: {totalStudents}</p>}
+              <p className="text-sm text-muted-foreground pt-2">Total Students: {totalStudents}</p>
           </CardHeader>
           <CardContent>
               <StatusIndicator />
-              {dataLoading && <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /> <span className="ml-2">Loading Student Data...</span></div>}
-              {dataError && <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"><AlertCircle className="inline-block h-4 w-4 mr-2"/>Failed to load student data: {dataError}</div>}
-              
+
               {submissionError && <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive mb-4"><AlertCircle className="inline-block h-4 w-4 mr-2"/>Submission Error: {submissionError}</div>}
+              
+              <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                      control={form.control}
+                      name="class"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Class *</FormLabel>
+                          <Select onValueChange={handleClassChange} defaultValue={field.value}>
+                              <FormControl>
+                              <SelectTrigger>
+                                  <SelectValue placeholder="Select a class" />
+                              </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  {classes.map((c) => (
+                                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                  <FormField
+                      control={form.control}
+                      name="student_id"
+                      render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                              <FormLabel>Student Name *</FormLabel>
+                              <Popover open={studentNamePopoverOpen} onOpenChange={setStudentNamePopoverOpen}>
+                                  <PopoverTrigger asChild>
+                                  <FormControl>
+                                      <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                          "w-full justify-between",
+                                          !field.value && "text-muted-foreground"
+                                      )}
+                                      disabled={!selectedClass}
+                                      >
+                                      {field.value
+                                          ? filteredStudents.find(
+                                              (student) => student.id === field.value
+                                          )?.name
+                                          : "Select a student"}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                  </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                  <Command>
+                                      <CommandInput placeholder="Search student..." />
+                                      <CommandList>
+                                          <CommandEmpty>No student found.</CommandEmpty>
+                                          <CommandGroup>
+                                          {filteredStudents.map((student) => (
+                                              <CommandItem
+                                              value={student.name}
+                                              key={student.id}
+                                              onSelect={() => {
+                                                  form.setValue("student_id", student.id);
+                                                  setStudentNamePopoverOpen(false);
+                                              }}
+                                              >
+                                              <Check
+                                                  className={cn(
+                                                  "mr-2 h-4 w-4",
+                                                  student.id === field.value
+                                                      ? "opacity-100"
+                                                      : "opacity-0"
+                                                  )}
+                                              />
+                                              {student.name}
+                                              </CommandItem>
+                                          ))}
+                                          </CommandGroup>
+                                      </CommandList>
+                                  </Command>
+                                  </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
 
-
-              {!dataLoading && !dataError && (
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="class"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Class *</FormLabel>
-                            <Select onValueChange={handleClassChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a class" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {classes.map((c) => (
-                                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="student_id"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Student Name *</FormLabel>
-                                <Popover open={studentNamePopoverOpen} onOpenChange={setStudentNamePopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        className={cn(
-                                            "w-full justify-between",
-                                            !field.value && "text-muted-foreground"
-                                        )}
-                                        disabled={!selectedClass}
-                                        >
-                                        {field.value
-                                            ? filteredStudents.find(
-                                                (student) => student.id === field.value
-                                            )?.name
-                                            : "Select a student"}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Search student..." />
-                                        <CommandList>
-                                            <CommandEmpty>No student found.</CommandEmpty>
-                                            <CommandGroup>
-                                            {filteredStudents.map((student) => (
-                                                <CommandItem
-                                                value={student.name}
-                                                key={student.id}
-                                                onSelect={() => {
-                                                    form.setValue("student_id", student.id);
-                                                    setStudentNamePopoverOpen(false);
-                                                }}
-                                                >
-                                                <Check
-                                                    className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    student.id === field.value
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                    )}
-                                                />
-                                                {student.name}
-                                                </CommandItem>
-                                            ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="number_of_males"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Number of Males</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="number_of_females"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Number of Females</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name="reach_time"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>When will you reach?</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a time" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="29th">29th</SelectItem>
-                                    <SelectItem value="30th 9:00am">30th 9:00am</SelectItem>
-                                    <SelectItem value="30th 12:00">30th 12:00</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button type="submit" disabled={isPending || isAlreadySubmitted || connectionStatus.status !== 'success'} className="w-full">
-                        {isPending ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Saving...
-                            </>
-                        ) : isAlreadySubmitted ? (
-                            "Submitted"
-                        ) : (
-                            "Go"
-                        )}
-                    </Button>
-                </form>
-                </Form>
-              )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="number_of_males"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Number of Males</FormLabel>
+                              <FormControl>
+                                  <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="number_of_females"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Number of Females</FormLabel>
+                              <FormControl>
+                                  <Input type="number" placeholder="0" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)} value={field.value ?? ""} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
+                  <FormField
+                      control={form.control}
+                      name="reach_time"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>When will you reach?</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                              <FormControl>
+                              <SelectTrigger>
+                                  <SelectValue placeholder="Select a time" />
+                              </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  <SelectItem value="29th">29th</SelectItem>
+                                  <SelectItem value="30th 9:00am">30th 9:00am</SelectItem>
+                                  <SelectItem value="30th 12:00">30th 12:00</SelectItem>
+                              </SelectContent>
+                          </Select>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                  <Button type="submit" disabled={isPending || isAlreadySubmitted || connectionStatus.status !== 'success'} className="w-full">
+                      {isPending ? (
+                          <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving...
+                          </>
+                      ) : isAlreadySubmitted ? (
+                          "Submitted"
+                      ) : (
+                          "Go"
+                      )}
+                  </Button>
+              </form>
+              </Form>
           </CardContent>
       </Card>
     </main>
