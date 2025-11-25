@@ -52,8 +52,8 @@ export async function getStudentsFromSheet(): Promise<{ students: Student[]; cla
 
         const students: Student[] = rows.map((row) => ({
             id: row[0],
-            name: row[2], // Corrected: "Students" is in column C
-            class: row[1], // Corrected: "Classes" is in column B
+            name: row[2], // "Students" is in column C
+            class: row[1], // "Classes" is in column B
         })).filter(s => s.id && s.name && s.class); // Filter out any empty rows
 
         const classes = [...new Set(students.map(s => s.class))].sort();

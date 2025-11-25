@@ -195,13 +195,6 @@ export default function Home() {
         </span>
     </div>
   );
-  
-  console.log('Button state:', {
-    isPending,
-    isAlreadySubmitted,
-    connectionOK: connectionStatus.status === 'success',
-    isDisabled: isPending || isAlreadySubmitted || connectionStatus.status !== 'success'
-  });
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4 sm:p-6 lg:p-8">
