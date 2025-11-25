@@ -28,9 +28,9 @@ import { saveSubmissionToGoogleSheet } from "@/app/actions/save-submission-to-go
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
   student: z.string().min(1, "Student name is required."),
-  male: z.coerce.number().min(0, "Number of males must be 0 or greater."),
-  female: z.coerce.number().min(0, "Number of females must be 0 or greater."),
-  when_reach: z.string().min(1, "Reach time is required."),
+  male: z.coerce.number().optional(),
+  female: z.coerce.number().optional(),
+  when_reach: z.string().optional(),
 });
 
 type FormData = z.infer<typeof FormSchema>;
@@ -101,9 +101,9 @@ export default function AttendancePage() {
       class: data.class,
       student_id: studentInfo.id,
       student_name: studentInfo.name,
-      number_of_males: data.male,
-      number_of_females: data.female,
-      reach_time: data.when_reach,
+      number_of_males: data.male || 0,
+      number_of_females: data.female || 0,
+      reach_time: data.when_reach || "",
     };
 
     const result = await saveSubmissionToGoogleSheet(payload);
