@@ -28,8 +28,8 @@ import { saveSubmissionToGoogleSheet } from "@/app/actions/save-submission-to-go
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
   student: z.string().min(1, "Student name is required."),
-  male: z.coerce.number().min(0),
-  female: z.coerce.number().min(0),
+  male: z.coerce.number().min(0, "Number of males must be 0 or greater."),
+  female: z.coerce.number().min(0, "Number of females must be 0 or greater."),
   when_reach: z.string().min(1, "Reach time is required."),
 });
 
@@ -101,8 +101,8 @@ export default function AttendancePage() {
       class: data.class,
       student_id: studentInfo.id,
       student_name: studentInfo.name,
-      number_of_males: Number(data.male),
-      number_of_females: Number(data.female),
+      number_of_males: data.male,
+      number_of_females: data.female,
       reach_time: data.when_reach,
     };
 
@@ -205,6 +205,11 @@ export default function AttendancePage() {
                     min="0"
                     {...form.register("male")}
                   />
+                  {form.formState.errors.male && (
+                    <p className="text-sm text-red-600">
+                      {form.formState.errors.male.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="female">Number of Females</Label>
@@ -214,6 +219,11 @@ export default function AttendancePage() {
                     min="0"
                     {...form.register("female")}
                   />
+                  {form.formState.errors.female && (
+                    <p className="text-sm text-red-600">
+                      {form.formState.errors.female.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
