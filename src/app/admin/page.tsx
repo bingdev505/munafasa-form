@@ -2,8 +2,13 @@
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { getAttendance } from "@/app/actions/get-attendance";
 import { saveImportedAttendance } from "@/app/actions/save-attendance";
+import { updateAttendance } from "@/app/actions/update-attendance";
+import { deleteAttendance } from "@/app/actions/delete-attendance";
 import Papa from "papaparse";
 import {
   Table,
@@ -14,16 +19,51 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Edit, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Attendance {
   id: number;
   name: string;
-  male: number;
-  female: number;
-  when_reach: string;
+  male: number | null;
+  female: number | null;
+  when_reach: string | null;
   class: string;
   created_at: string;
 }
+
+const editFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  class: z.string().min(1, "Class is required"),
+  male: z.coerce.number().optional(),
+  female: z.coerce.number().optional(),
+  when_reach: z.string().optional(),
+});
+
+type EditFormData = z.infer<typeof editFormSchema>;
 
 export default function AdminPage() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
@@ -33,12 +73,20 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  const { toast } = useToast();
+
+  const form = useForm<EditFormData>({
+    resolver: zodResolver(editFormSchema),
+  });
 
   const fetchAttendance = async () => {
     setLoading(true);
     const { data, error } = await getAttendance();
     if (error) {
       setError(error);
+      toast({ variant: "destructive", title: "Error", description: error });
     } else {
       setAttendance(data);
       setFilteredAttendance(data);
@@ -85,9 +133,9 @@ export default function AdminPage() {
         skipEmptyLines: true,
         complete: async (results) => {
           const importedData = results.data.map((row: any) => ({
-            name: row.Name || row.name || row.ID || row.id, // Handles different possible headers for name
+            name: row.Name || row.name || row.ID || row.id,
             class: row.Class || row.class,
-          })).filter(item => item.name && item.class); // Filter out rows that are missing name or class
+          })).filter(item => item.name && item.class);
 
           if (importedData.length === 0) {
             setImportError("No valid data found in CSV file. Ensure columns are named 'Name' (or 'ID') and 'Class'.");
@@ -97,17 +145,41 @@ export default function AdminPage() {
 
           const { success, error } = await saveImportedAttendance(importedData);
           if (success) {
-            fetchAttendance(); // Refresh the data
+            fetchAttendance();
+            toast({ title: "Success", description: "Data imported successfully." });
           } else {
             setImportError(error);
+            toast({ variant: "destructive", title: "Import Failed", description: error });
           }
           setImporting(false);
         },
         error: (error: any) => {
             setImportError("Error parsing CSV file: " + error.message);
+            toast({ variant: "destructive", title: "Import Error", description: "Error parsing CSV file: " + error.message });
             setImporting(false);
         }
       });
+    }
+  };
+
+  const handleEditSubmit = async (data: EditFormData, id: number) => {
+    const result = await updateAttendance(id, data);
+    if (result.success) {
+      fetchAttendance();
+      setIsEditDialogOpen(false);
+      toast({ title: "Success", description: "Record updated successfully." });
+    } else {
+      toast({ variant: "destructive", title: "Update Failed", description: result.message });
+    }
+  };
+  
+  const handleDelete = async (id: number) => {
+    const result = await deleteAttendance(id);
+    if (result.success) {
+      fetchAttendance();
+      toast({ title: "Success", description: "Record deleted successfully." });
+    } else {
+      toast({ variant: "destructive", title: "Delete Failed", description: result.message });
     }
   };
 
@@ -133,11 +205,13 @@ export default function AdminPage() {
                 <TableHead><Skeleton className="h-5 w-16" /></TableHead>
                 <TableHead><Skeleton className="h-5 w-32" /></TableHead>
                 <TableHead><Skeleton className="h-5 w-40" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
@@ -168,10 +242,10 @@ export default function AdminPage() {
       <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
 
       <div className="flex justify-between items-center mb-4">
-        <input
+        <Input
           type="text"
           placeholder="Filter by name..."
-          className="border p-2 rounded w-64"
+          className="max-w-sm"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -187,12 +261,12 @@ export default function AdminPage() {
             className="hidden"
             disabled={importing}
           />
-          <button
+          <Button
             onClick={downloadCSV}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Download as CSV
-          </button>
+          </Button>
         </div>
       </div>
       {importing && <p className="text-blue-500">Importing data, please wait...</p>}
@@ -209,6 +283,7 @@ export default function AdminPage() {
               <TableHead className="text-center">Female</TableHead>
               <TableHead className="text-center">When Reach</TableHead>
               <TableHead className="text-center">Created At</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -221,6 +296,80 @@ export default function AdminPage() {
                 <TableCell className="text-center">{entry.female}</TableCell>
                 <TableCell className="text-center">{entry.when_reach}</TableCell>
                 <TableCell className="text-center">{new Date(entry.created_at).toLocaleString()}</TableCell>
+                <TableCell className="text-center">
+                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => form.reset({
+                        name: entry.name,
+                        class: entry.class,
+                        male: entry.male || 0,
+                        female: entry.female || 0,
+                        when_reach: entry.when_reach || "",
+                      })}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Record</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={form.handleSubmit(data => handleEditSubmit(data, entry.id))} className="space-y-4">
+                          <div>
+                              <Label htmlFor="name">Name</Label>
+                              <Input id="name" {...form.register("name")} />
+                              {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
+                          </div>
+                          <div>
+                              <Label htmlFor="class">Class</Label>
+                              <Input id="class" {...form.register("class")} />
+                              {form.formState.errors.class && <p className="text-red-500 text-sm">{form.formState.errors.class.message}</p>}
+                          </div>
+                          <div>
+                              <Label htmlFor="male">Males</Label>
+                              <Input id="male" type="number" {...form.register("male")} />
+                          </div>
+                          <div>
+                              <Label htmlFor="female">Females</Label>
+                              <Input id="female" type="number" {...form.register("female")} />
+                          </div>
+                          <div>
+                              <Label htmlFor="when_reach">When Reach</Label>
+                              <Input id="when_reach" {...form.register("when_reach")} />
+                          </div>
+                          <DialogFooter>
+                              <DialogClose asChild>
+                                  <Button type="button" variant="secondary">Cancel</Button>
+                              </DialogClose>
+                              <Button type="submit" disabled={form.formState.isSubmitting}>
+                                  {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                              </Button>
+                          </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the attendance record.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(entry.id)}>
+                          Continue
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -229,3 +378,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
+    
