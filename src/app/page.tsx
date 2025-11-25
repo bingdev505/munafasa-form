@@ -101,8 +101,8 @@ export default function AttendancePage() {
       class: data.class,
       student_id: studentInfo.id,
       student_name: studentInfo.name,
-      number_of_males: data.male,
-      number_of_females: data.female,
+      number_of_males: Number(data.male),
+      number_of_females: Number(data.female),
       reach_time: data.when_reach,
     };
 
