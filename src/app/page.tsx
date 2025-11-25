@@ -116,12 +116,15 @@ export default function Home() {
     });
   }
 
+  const totalStudents = students.length;
+
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <Card className="w-full max-w-lg shadow-2xl">
           <CardHeader>
               <CardTitle className="text-3xl font-bold tracking-tight">Meeting Attendance</CardTitle>
               <CardDescription className="text-muted-foreground">Please fill out the form to confirm your attendance.</CardDescription>
+              <p className="text-sm text-muted-foreground pt-2">Total Students: {totalStudents}</p>
           </CardHeader>
           <CardContent>
               <Form {...form}>
