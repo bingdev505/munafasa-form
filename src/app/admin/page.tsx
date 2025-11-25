@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
@@ -74,7 +73,7 @@ export default function AdminPage() {
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  
+
   const { toast } = useToast();
 
   const form = useForm<EditFormData>({
@@ -166,7 +165,7 @@ export default function AdminPage() {
     const result = await updateAttendance(id, data);
     if (result.success) {
       fetchAttendance();
-      setIsEditDialogOpen(false);
+      setIsEditDialogOpen(false); // Close the dialog on success
       toast({ title: "Success", description: "Record updated successfully." });
     } else {
       toast({ variant: "destructive", title: "Update Failed", description: result.message });
@@ -182,16 +181,26 @@ export default function AdminPage() {
       toast({ variant: "destructive", title: "Delete Failed", description: result.message });
     }
   };
+  
+  const openEditDialog = (entry: Attendance) => {
+    form.reset({
+      name: entry.name,
+      class: entry.class,
+      male: entry.male || 0,
+      female: entry.female || 0,
+      when_reach: entry.when_reach || "",
+    });
+    setIsEditDialogOpen(true);
+  }
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
-        <div className="flex justify-between items-center mb-4">
-          <Skeleton className="h-10 w-64" />
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-10 w-40" />
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+          <Skeleton className="h-10 w-full md:w-64" />
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+            <Skeleton className="h-10 w-full sm:w-32" />
+            <Skeleton className="h-10 w-full sm:w-40" />
           </div>
         </div>
         <div className="rounded-md border">
@@ -230,27 +239,24 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
         <div className="text-red-500">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Attendance Records</h1>
-
-      <div className="flex justify-between items-center mb-4">
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
         <Input
           type="text"
           placeholder="Filter by name..."
-          className="max-w-sm"
+          className="w-full md:max-w-sm"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
-        <div className="flex items-center gap-2">
-          <label htmlFor="import-csv" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+          <label htmlFor="import-csv" className="w-full sm:w-auto text-center bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
             Import CSV
           </label>
           <input
@@ -263,7 +269,7 @@ export default function AdminPage() {
           />
           <Button
             onClick={downloadCSV}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold"
           >
             Download as CSV
           </Button>
@@ -272,7 +278,7 @@ export default function AdminPage() {
       {importing && <p className="text-blue-500">Importing data, please wait...</p>}
       {importError && <p className="text-red-500">{importError}</p>}
 
-      <div className="rounded-md border mt-4">
+      <div className="rounded-md border mt-4 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -281,71 +287,67 @@ export default function AdminPage() {
               <TableHead>Class</TableHead>
               <TableHead className="text-center">Male</TableHead>
               <TableHead className="text-center">Female</TableHead>
-              <TableHead className="text-center">When Reach</TableHead>
-              <TableHead className="text-center">Created At</TableHead>
+              <TableHead>When Reach</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAttendance.map((entry) => (
               <TableRow key={entry.id}>
-                <TableCell className="font-medium text-center">{entry.id}</TableCell>
+                <TableCell className="font-medium">{entry.id}</TableCell>
                 <TableCell>{entry.name}</TableCell>
                 <TableCell>{entry.class}</TableCell>
                 <TableCell className="text-center">{entry.male}</TableCell>
                 <TableCell className="text-center">{entry.female}</TableCell>
-                <TableCell className="text-center">{entry.when_reach}</TableCell>
-                <TableCell className="text-center">{new Date(entry.created_at).toLocaleString()}</TableCell>
-                <TableCell className="text-center">
-                  <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <TableCell>{entry.when_reach}</TableCell>
+                <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
+                <TableCell className="flex items-center justify-center space-x-1">
+                  <Dialog onOpenChange={setIsEditDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => form.reset({
-                        name: entry.name,
-                        class: entry.class,
-                        male: entry.male || 0,
-                        female: entry.female || 0,
-                        when_reach: entry.when_reach || "",
-                      })}>
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(entry)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Record</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={form.handleSubmit(data => handleEditSubmit(data, entry.id))} className="space-y-4">
-                          <div>
-                              <Label htmlFor="name">Name</Label>
-                              <Input id="name" {...form.register("name")} />
-                              {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
-                          </div>
-                          <div>
-                              <Label htmlFor="class">Class</Label>
-                              <Input id="class" {...form.register("class")} />
-                              {form.formState.errors.class && <p className="text-red-500 text-sm">{form.formState.errors.class.message}</p>}
-                          </div>
-                          <div>
-                              <Label htmlFor="male">Males</Label>
-                              <Input id="male" type="number" {...form.register("male")} />
-                          </div>
-                          <div>
-                              <Label htmlFor="female">Females</Label>
-                              <Input id="female" type="number" {...form.register("female")} />
-                          </div>
-                          <div>
-                              <Label htmlFor="when_reach">When Reach</Label>
-                              <Input id="when_reach" {...form.register("when_reach")} />
-                          </div>
-                          <DialogFooter>
-                              <DialogClose asChild>
-                                  <Button type="button" variant="secondary">Cancel</Button>
-                              </DialogClose>
-                              <Button type="submit" disabled={form.formState.isSubmitting}>
-                                  {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                              </Button>
-                          </DialogFooter>
-                      </form>
-                    </DialogContent>
+                     {isEditDialogOpen && (
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Record</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={form.handleSubmit(data => handleEditSubmit(data, entry.id))} className="space-y-4">
+                            <div>
+                                <Label htmlFor="name">Name</Label>
+                                <Input id="name" {...form.register("name")} />
+                                {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="class">Class</Label>
+                                <Input id="class" {...form.register("class")} />
+                                {form.formState.errors.class && <p className="text-red-500 text-sm">{form.formState.errors.class.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="male">Males</Label>
+                                <Input id="male" type="number" {...form.register("male")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="female">Females</Label>
+                                <Input id="female" type="number" {...form.register("female")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="when_reach">When Reach</Label>
+                                <Input id="when_reach" {...form.register("when_reach")} />
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">Cancel</Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={form.formState.isSubmitting}>
+                                    {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                      </DialogContent>
+                     )}
                   </Dialog>
 
                   <AlertDialog>
@@ -378,5 +380,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    
