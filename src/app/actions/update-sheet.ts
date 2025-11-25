@@ -3,22 +3,6 @@
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { students } from '@/app/lib/student-data';
-import fs from 'fs';
-import path from 'path';
-
-// IMPORTANT: Make sure to create a credentials.json file in the root of your project
-// with the service account key you downloaded from Google Cloud.
-function getCredentials() {
-    try {
-        const credentialsPath = path.join(process.cwd(), 'credentials.json');
-        const credentialsFile = fs.readFileSync(credentialsPath, 'utf8');
-        return JSON.parse(credentialsFile);
-    } catch (error) {
-        console.error('Error reading credentials.json:', error);
-        return null;
-    }
-}
-
 
 const formSchema = z.object({
     class: z.string(),
@@ -31,20 +15,19 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 // This is where you'll put your Google Sheet ID.
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
-// This is the name of the sheet (tab) within your Google Sheet.
+const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_NAME = 'Sheet1'; 
 
 async function getGoogleSheetsClient() {
-    const credentials = getCredentials();
-    if (!credentials) {
-        throw new Error('Failed to load credentials. Make sure credentials.json exists in the project root.');
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+        throw new Error('Google service account credentials are not set in the environment variables.');
     }
-
+    
     const auth = new google.auth.JWT(
-        credentials.client_email,
+        process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         undefined,
-        credentials.private_key,
+        // The private key needs to have newlines replaced to be read from the environment variable.
+        process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         ['https://www.googleapis.com/auth/spreadsheets']
     );
 
@@ -53,16 +36,11 @@ async function getGoogleSheetsClient() {
 }
 
 export async function updateSheet(data: FormData): Promise<{ success: boolean; error?: string }> {
-    const credentials = getCredentials();
-    if (!credentials) {
-        return { success: false, error: 'Failed to load credentials. Make sure credentials.json exists in the project root.' };
+    if (!SPREADSHEE_ID) {
+        return { success: false, error: 'Google Sheet ID is not configured in the environment variables.' };
     }
     
     try {
-        if (!SPREADSHEET_ID || SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID') {
-            return { success: false, error: 'Spreadsheet ID is not configured. Please update it in src/app/actions/update-sheet.ts' };
-        }
-        
         const sheets = await getGoogleSheetsClient();
 
         // Find the student's ID based on their name.
@@ -80,6 +58,8 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
 
         const rows = getRowsResponse.data.values;
         if (!rows || rows.length === 0) {
+            // If the sheet is empty, we can't find a row.
+            // Depending on requirements, you might want to append a new row here.
             return { success: false, error: 'Sheet is empty or could not be read.' };
         }
 
@@ -87,7 +67,7 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         const rowIndex = rows.findIndex(row => row[0] === studentId) + 1;
 
         if (rowIndex === 0) { // findIndex returns -1 if not found, so it becomes 0 here.
-            return { success: false, error: `Student ID "${studentId}" not found in the sheet.` };
+             return { success: false, error: `Student ID "${studentId}" not found in the sheet.` };
         }
 
         // 2. Update the specific row with the new data.
@@ -113,10 +93,6 @@ export async function updateSheet(data: FormData): Promise<{ success: boolean; e
         return { success: true };
     } catch (err: any) {
         console.error('Error updating Google Sheet:', err);
-        // Provide a more user-friendly error message
-        if (err.message.includes('Unable to parse credentials') || err.message.includes('no such file')) {
-            return { success: false, error: 'Failed to parse credentials. Make sure your credentials.json file exists in the project root and is correctly formatted.' };
-        }
         if(err.code === 403) {
             return { success: false, error: `Permission denied. Make sure the service account has access to the Google Sheet. Details: ${err.message}` };
         }
