@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { getClassData, ClassData } from "@/app/actions/get-class-data";
-import { saveSubmissionToGoogleSheet } from "@/app/actions/save-submission-to-google-sheet";
+import { submitAttendance } from "@/app/actions/submit-attendance";
 
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
@@ -83,30 +83,14 @@ export default function AttendancePage() {
     setIsPending(true);
     setSubmissionStatus(null);
 
-    const studentInfo =
-      classData[data.class]?.find(
-        (s) => s.id.toString() === data.student
-      ) || null;
-
-    if (!studentInfo) {
-      setSubmissionStatus({
-        success: false,
-        message: "Could not find student details. Please try again.",
-      });
-      setIsPending(false);
-      return;
-    }
-
     const payload = {
-      class: data.class,
-      student_id: studentInfo.id,
-      student_name: studentInfo.name,
+      student_id: data.student,
       number_of_males: data.male || 0,
       number_of_females: data.female || 0,
       reach_time: data.when_reach || "",
     };
 
-    const result = await saveSubmissionToGoogleSheet(payload);
+    const result = await submitAttendance(payload);
     setSubmissionStatus(result);
 
     if (result.success) {
