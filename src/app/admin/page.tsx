@@ -128,10 +128,10 @@ export default function AdminPage() {
       fullTotal: 0,
       "29th_males": 0,
       "29th_females": 0,
-      "Nasta vendavar_males": 0,
-      "Nasta vendavar_females": 0,
-      "Nasta vendathavar_males": 0,
-      "Nasta vendathavar_females": 0,
+      "30th Nasta vendavar_males": 0,
+      "30th Nasta vendavar_females": 0,
+      "30th Nasta vendathavar_males": 0,
+      "30th Nasta vendathavar_females": 0,
     };
 
     for (const entry of attendance) {
@@ -319,12 +319,12 @@ export default function AdminPage() {
             value={`M: ${summaryStats["29th_males"]} | F: ${summaryStats["29th_females"]}`}
         />
         <SummaryCard 
-            title="Nasta vendavar"
-            value={`M: ${summaryStats["Nasta vendavar_males"]} | F: ${summaryStats["Nasta vendavar_females"]}`}
+            title="30th Nasta vendavar"
+            value={`M: ${summaryStats["30th Nasta vendavar_males"]} | F: ${summaryStats["30th Nasta vendavar_females"]}`}
         />
         <SummaryCard 
-            title="Nasta vendathavar"
-            value={`M: ${summaryStats["Nasta vendathavar_males"]} | F: ${summaryStats["Nasta vendathavar_females"]}`}
+            title="30th Nasta vendathavar"
+            value={`M: ${summaryStats["30th Nasta vendathavar_males"]} | F: ${summaryStats["30th Nasta vendathavar_females"]}`}
         />
       </div>
 
@@ -344,8 +344,8 @@ export default function AdminPage() {
                 <SelectContent>
                     <SelectItem value="all">All Reach Times</SelectItem>
                     <SelectItem value="29th">29th</SelectItem>
-                    <SelectItem value="Nasta vendavar">Nasta vendavar</SelectItem>
-                    <SelectItem value="Nasta vendathavar">Nasta vendathavar</SelectItem>
+                    <SelectItem value="30th Nasta vendavar">30th Nasta vendavar</SelectItem>
+                    <SelectItem value="30th Nasta vendathavar">30th Nasta vendathavar</SelectItem>
                 </SelectContent>
             </Select>
         </div>
