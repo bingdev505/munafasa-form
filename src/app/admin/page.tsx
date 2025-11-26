@@ -128,10 +128,10 @@ export default function AdminPage() {
       fullTotal: 0,
       "29th_males": 0,
       "29th_females": 0,
-      "30th 9:00 am_males": 0,
-      "30th 9:00 am_females": 0,
-      "30th 12:00 pm_males": 0,
-      "30th 12:00 pm_females": 0,
+      "Nasta vendavar_males": 0,
+      "Nasta vendavar_females": 0,
+      "Nasta vendathavar_males": 0,
+      "Nasta vendathavar_females": 0,
     };
 
     for (const entry of attendance) {
@@ -319,12 +319,12 @@ export default function AdminPage() {
             value={`M: ${summaryStats["29th_males"]} | F: ${summaryStats["29th_females"]}`}
         />
         <SummaryCard 
-            title="Arriving 30th 9:00am"
-            value={`M: ${summaryStats["30th 9:00 am_males"]} | F: ${summaryStats["30th 9:00 am_females"]}`}
+            title="Nasta vendavar"
+            value={`M: ${summaryStats["Nasta vendavar_males"]} | F: ${summaryStats["Nasta vendavar_females"]}`}
         />
         <SummaryCard 
-            title="Arriving 30th 12:00pm"
-            value={`M: ${summaryStats["30th 12:00 pm_males"]} | F: ${summaryStats["30th 12:00 pm_females"]}`}
+            title="Nasta vendathavar"
+            value={`M: ${summaryStats["Nasta vendathavar_males"]} | F: ${summaryStats["Nasta vendathavar_females"]}`}
         />
       </div>
 
@@ -344,8 +344,8 @@ export default function AdminPage() {
                 <SelectContent>
                     <SelectItem value="all">All Reach Times</SelectItem>
                     <SelectItem value="29th">29th</SelectItem>
-                    <SelectItem value="30th 9:00 am">30th 9:00 am</SelectItem>
-                    <SelectItem value="30th 12:00 pm">30th 12:00 pm</SelectItem>
+                    <SelectItem value="Nasta vendavar">Nasta vendavar</SelectItem>
+                    <SelectItem value="Nasta vendathavar">Nasta vendathavar</SelectItem>
                 </SelectContent>
             </Select>
         </div>

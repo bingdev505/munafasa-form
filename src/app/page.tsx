@@ -332,8 +332,8 @@ export default function AttendancePage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="29th">29th</SelectItem>
-                      <SelectItem value="30th 9:00 am">30th 9:00 am</SelectItem>
-                      <SelectItem value="30th 12:00 pm">30th 12:00 pm</SelectItem>
+                      <SelectItem value="Nasta vendavar">Nasta vendavar</SelectItem>
+                      <SelectItem value="Nasta vendathavar">Nasta vendathavar</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
