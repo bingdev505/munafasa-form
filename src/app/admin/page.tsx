@@ -77,6 +77,7 @@ export default function AdminPage() {
   const [filteredAttendance, setFilteredAttendance] = useState<Attendance[]>([]);
   const [nameFilter, setNameFilter] = useState("");
   const [reachTimeFilter, setReachTimeFilter] = useState("all");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -118,8 +119,20 @@ export default function AdminPage() {
       filtered = filtered.filter((entry) => entry.when_reach === reachTimeFilter);
     }
 
+    if (submissionStatusFilter !== "all") {
+      const hasSubmitted = (entry: Attendance) => 
+        !!entry.when_reach || (entry.male != null && entry.male > 0) || (entry.female != null && entry.female > 0);
+      
+      if (submissionStatusFilter === "submitted") {
+        filtered = filtered.filter(hasSubmitted);
+      } else if (submissionStatusFilter === "not-submitted") {
+        filtered = filtered.filter(entry => !hasSubmitted(entry));
+      }
+    }
+
+
     setFilteredAttendance(filtered);
-  }, [nameFilter, reachTimeFilter, attendance]);
+  }, [nameFilter, reachTimeFilter, submissionStatusFilter, attendance]);
 
   const summaryStats = useMemo(() => {
     const stats = {
@@ -346,6 +359,16 @@ export default function AdminPage() {
                     <SelectItem value="29th">29th</SelectItem>
                     <SelectItem value="30th Nasta vendavar">30th Nasta vendavar</SelectItem>
                     <SelectItem value="30th Nasta vendathavar">30th Nasta vendathavar</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={submissionStatusFilter} onValueChange={setSubmissionStatusFilter}>
+                <SelectTrigger className="w-full md:max-w-xs">
+                    <SelectValue placeholder="Filter by submission status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="not-submitted">Not Submitted</SelectItem>
                 </SelectContent>
             </Select>
         </div>
