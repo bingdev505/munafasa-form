@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -42,8 +43,8 @@ import { cn } from "@/lib/utils";
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
   student: z.string().min(1, "Student name is required."),
-  male: z.coerce.number().optional(),
-  female: z.coerce.number().optional(),
+  male: z.coerce.number().max(10, "Cannot be more than 10.").optional(),
+  female: z.coerce.number().max(10, "Cannot be more than 10.").optional(),
   when_reach: z.string().optional(),
 });
 
@@ -287,7 +288,7 @@ export default function AttendancePage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="male">Number of Males</Label>
+                <Label htmlFor="male">Number of males comes</Label>
                 <Input
                   id="male"
                   type="number"
@@ -301,7 +302,7 @@ export default function AttendancePage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="female">Number of Females</Label>
+                <Label htmlFor="female">Number of females comes</Label>
                 <Input
                   id="female"
                   type="number"
@@ -375,3 +376,5 @@ export default function AttendancePage() {
     </main>
   );
 }
+
+    
