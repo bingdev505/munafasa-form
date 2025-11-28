@@ -249,7 +249,7 @@ export default function AttendancePage() {
                             >
                                 <span className="truncate">
                                 {field.value
-                                    ? studentsInClass.find((student) => student.id.toString() === field.value)?.name
+                                    ? studentsInClass.find((student) => student.id === field.value)?.name
                                     : "Select your name"}
                                 </span>
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -266,14 +266,14 @@ export default function AttendancePage() {
                                         key={student.id}
                                         value={student.name}
                                         onSelect={() => {
-                                            form.setValue("student", student.id.toString());
+                                            form.setValue("student", student.id);
                                             setComboboxOpen(false);
                                         }}
                                     >
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                (hasSubmitted(student) || field.value === student.id.toString()) ? "opacity-100 text-green-500" : "opacity-0"
+                                                (hasSubmitted(student) || field.value === student.id) ? "opacity-100 text-green-500" : "opacity-0"
                                             )}
                                         />
                                         {student.name}
