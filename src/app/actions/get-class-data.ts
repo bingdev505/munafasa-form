@@ -37,9 +37,10 @@ export async function getClassData(): Promise<ClassData> {
       acc[className] = [];
     }
     
+    const studentIdStr = String(id);
     // Ensure no duplicate students are added
-    if (!acc[className].some(student => student.id === id)) {
-      acc[className].push({ id, name, male, female, when_reach });
+    if (!acc[className].some(student => student.id === studentIdStr)) {
+      acc[className].push({ id: studentIdStr, name, male, female, when_reach });
     }
 
     return acc;

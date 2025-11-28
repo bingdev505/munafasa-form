@@ -15,7 +15,8 @@ export type FamilyData = {
   others?: { relationship: string; name: string; }[]; // Changed from others_name
 };
 
-type DbFamilyData = Omit<FamilyData, 'others'> & {
+type DbFamilyData = Omit<FamilyData, 'others' | 'student_id'> & {
+    student_id: number | string;
     others_name?: { relationship: string; name: string; }[];
 }
 
@@ -35,10 +36,11 @@ export async function getFamilyData(studentId: string): Promise<FamilyData | nul
       return null;
   }
 
-  // Remap others_name to others for frontend consistency
-  const { others_name, ...rest } = dbData as DbFamilyData;
+  // Remap others_name to others for frontend consistency and ensure student_id is a string
+  const { others_name, student_id, ...rest } = dbData as DbFamilyData;
   const data: FamilyData = {
       ...rest,
+      student_id: String(student_id),
       others: others_name || [],
   };
 
