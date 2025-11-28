@@ -35,6 +35,19 @@ export async function saveFamilyData(
       message: "Invalid data format provided.",
     };
   }
+
+  const { student_id, mother_name, father_name, grandmother_name, grandfather_name, brother_name, sister_name, others } = parsedData.data;
+
+  const recordToSave = {
+      student_id,
+      mother_name,
+      father_name,
+      grandmother_name,
+      grandfather_name,
+      brother_name,
+      sister_name,
+      others,
+  };
   
   try {
     let error;
@@ -42,14 +55,14 @@ export async function saveFamilyData(
       // Update existing record
       const { error: updateError } = await supabase
         .from("family")
-        .update(parsedData.data)
+        .update(recordToSave)
         .eq("id", existingRecordId);
       error = updateError;
     } else {
       // Insert new record
       const { error: insertError } = await supabase
         .from("family")
-        .insert(parsedData.data);
+        .insert(recordToSave);
       error = insertError;
     }
     

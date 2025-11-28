@@ -22,7 +22,7 @@ type DbFamilyData = Omit<FamilyData, 'student_id'> & {
 export async function getFamilyData(studentId: string): Promise<FamilyData | null> {
   const { data: dbData, error } = await supabase
     .from("family")
-    .select("*")
+    .select("id, student_id, mother_name, father_name, grandmother_name, grandfather_name, brother_name, sister_name, others")
     .eq("student_id", studentId)
     .single();
 
