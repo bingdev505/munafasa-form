@@ -12,6 +12,7 @@ export type FamilyData = {
   grandfather_name?: string;
   brother_name?: string;
   sister_name?: string;
+  others_name?: string;
 };
 
 export async function getFamilyData(studentId: string): Promise<FamilyData | null> {

@@ -12,6 +12,7 @@ const FamilySchema = z.object({
   grandfather_name: z.string().optional(),
   brother_name: z.string().optional(),
   sister_name: z.string().optional(),
+  others_name: z.string().optional(),
 });
 
 export type FamilyData = z.infer<typeof FamilySchema>;

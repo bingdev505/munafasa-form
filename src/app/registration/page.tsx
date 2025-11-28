@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { getClassData, ClassData, Student } from "@/app/actions/get-class-data";
 import { getFamilyData, FamilyData } from "@/app/actions/get-family-data";
@@ -45,6 +46,7 @@ const FormSchema = z.object({
   grandfather_name: z.string().optional(),
   brother_name: z.string().optional(),
   sister_name: z.string().optional(),
+  others_name: z.string().optional(),
 });
 
 type FormData = z.infer<typeof FormSchema>;
@@ -69,6 +71,7 @@ export default function RegistrationPage() {
       grandfather_name: "",
       brother_name: "",
       sister_name: "",
+      others_name: "",
     },
   });
 
@@ -102,6 +105,7 @@ export default function RegistrationPage() {
                 grandfather_name: familyData.grandfather_name || "",
                 brother_name: familyData.brother_name || "",
                 sister_name: familyData.sister_name || "",
+                others_name: familyData.others_name || "",
             });
             setExistingRecordId(familyData.id);
         } else {
@@ -113,6 +117,7 @@ export default function RegistrationPage() {
                 grandfather_name: "",
                 brother_name: "",
                 sister_name: "",
+                others_name: "",
             });
             setExistingRecordId(undefined);
         }
@@ -269,6 +274,10 @@ export default function RegistrationPage() {
                             <Label htmlFor="sister_name">Sister&apos;s Name</Label>
                             <Input id="sister_name" {...form.register("sister_name")} />
                         </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="others_name">Others (comma-separated)</Label>
+                        <Textarea id="others_name" {...form.register("others_name")} />
                     </div>
                 </div>
             )}
