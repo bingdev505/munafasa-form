@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,7 +13,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Command,
@@ -35,7 +35,6 @@ import { getFamilyData } from "@/app/actions/get-family-data";
 import { saveFamilyData } from "@/app/actions/save-family-data";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 const OtherFamilyMemberSchema = z.object({
@@ -56,7 +55,10 @@ const FormSchema = z.object({
 
 type FormData = z.infer<typeof FormSchema>;
 
-export default function RegistrationPage() {
+function RegistrationPageContent() {
+  const searchParams = useSearchParams();
+  const studentIdFromQuery = searchParams.get("student_id");
+
   const [classData, setClassData] = useState<ClassData>({});
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -94,11 +96,19 @@ export default function RegistrationPage() {
     const students = Object.values(data).flat();
     setAllStudents(students);
     setIsLoading(false);
+    return students;
   };
 
   useEffect(() => {
-    fetchInitialData();
-  }, []);
+    fetchInitialData().then((students) => {
+      if (studentIdFromQuery) {
+        const studentExists = students.some(s => s.id === studentIdFromQuery);
+        if (studentExists) {
+          form.setValue("student_id", studentIdFromQuery);
+        }
+      }
+    });
+  }, [studentIdFromQuery, form]);
 
   useEffect(() => {
     const fetchAndSetFamilyData = async (studentId: string) => {
@@ -359,4 +369,10 @@ export default function RegistrationPage() {
   );
 }
 
-    
+export default function RegistrationPage() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <RegistrationPageContent />
+    </React.Suspense>
+  )
+}

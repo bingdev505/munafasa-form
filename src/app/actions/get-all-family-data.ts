@@ -59,6 +59,7 @@ export async function getAllFamilyData(): Promise<{ data: FullFamilyData[] | nul
         const studentInfo = studentInfoMap.get(String(familyRecord.student_id));
         return {
             ...familyRecord,
+            id: familyRecord.id,
             student_id: String(familyRecord.student_id),
             student_name: studentInfo?.name || `ID: ${familyRecord.student_id}`,
             student_class: studentInfo?.class || 'N/A',

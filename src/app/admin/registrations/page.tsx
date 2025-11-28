@@ -2,7 +2,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getAllFamilyData, FullFamilyData } from "@/app/actions/get-all-family-data";
+import { deleteFamilyRegistration } from "@/app/actions/delete-family-registration";
 import {
   Table,
   TableBody,
@@ -21,6 +23,17 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -35,9 +48,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Users, ListFilter } from "lucide-react";
+import { ChevronDown, Users, ListFilter, Edit, Trash2 } from "lucide-react";
 import SummaryCard from "@/components/SummaryCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 type ColumnKeys = 'student_name' | 'student_class' | 'father_name' | 'mother_name' | 'grandfather_name' | 'grandmother_name' | 'brother_name' | 'sister_name' | 'registered_at';
 
@@ -54,6 +68,8 @@ const columnDisplayNames: Record<ColumnKeys, string> = {
 };
 
 export default function RegistrationsPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [registrations, setRegistrations] = useState<FullFamilyData[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<FullFamilyData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -155,6 +171,20 @@ export default function RegistrationsPage() {
   
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleEdit = (studentId: string) => {
+    router.push(`/registration?student_id=${studentId}`);
+  };
+
+  const handleDelete = async (id: number) => {
+    const result = await deleteFamilyRegistration(id);
+    if (result.success) {
+      fetchRegistrations(); // Refetch data to update the table
+      toast({ title: "Success", description: "Registration deleted successfully." });
+    } else {
+      toast({ variant: "destructive", title: "Delete Failed", description: result.message });
+    }
   };
   
   if (loading) {
@@ -294,6 +324,7 @@ export default function RegistrationsPage() {
                     isVisible && <TableHead key={key}>{columnDisplayNames[key as ColumnKeys]}</TableHead>
                 )}
               <TableHead className="text-center no-print">Full Details</TableHead>
+              <TableHead className="text-center no-print">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -319,10 +350,36 @@ export default function RegistrationsPage() {
                           </Button>
                         </CollapsibleTrigger>
                       </TableCell>
+                       <TableCell className="flex items-center justify-center space-x-1 no-print">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(reg.student_id)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the family registration record.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(reg.id)}>
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
                     </TableRow>
                     <CollapsibleContent asChild>
                       <TableRow className="no-print">
-                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 1} className="p-0">
+                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 2} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
@@ -355,7 +412,7 @@ export default function RegistrationsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 1} className="text-center h-24">
+                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 2} className="text-center h-24">
                   No registration records found.
                 </TableCell>
               </TableRow>
@@ -366,5 +423,3 @@ export default function RegistrationsPage() {
     </div>
   );
 }
-
-    
