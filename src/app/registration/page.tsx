@@ -210,7 +210,7 @@ export default function RegistrationPage() {
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                            <Command>
                                 <CommandInput placeholder="Search for a name..." />
-                                <CommandList>
+                                <CommandList className="max-h-60">
                                 <CommandEmpty>No student found.</CommandEmpty>
                                 <CommandGroup>
                                     {allStudents.map((student) => (
@@ -350,3 +350,5 @@ export default function RegistrationPage() {
     </main>
   );
 }
+
+    

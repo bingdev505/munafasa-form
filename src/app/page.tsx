@@ -258,7 +258,7 @@ export default function AttendancePage() {
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                            <Command>
                                 <CommandInput placeholder="Search for a name..." />
-                                <CommandList>
+                                <CommandList className="max-h-60">
                                 <CommandEmpty>No student found.</CommandEmpty>
                                 <CommandGroup>
                                     {studentsInClass.map((student) => (
@@ -390,3 +390,5 @@ export default function AttendancePage() {
     </main>
   );
 }
+
+    
