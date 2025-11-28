@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -29,14 +29,19 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Check, ChevronsUpDown, PlusCircle, X } from "lucide-react";
 import { getClassData, ClassData, Student } from "@/app/actions/get-class-data";
-import { getFamilyData, FamilyData } from "@/app/actions/get-family-data";
+import { getFamilyData } from "@/app/actions/get-family-data";
 import { saveFamilyData } from "@/app/actions/save-family-data";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
+
+const OtherFamilyMemberSchema = z.object({
+  relationship: z.string().min(1, "Relationship is required"),
+  name: z.string().min(1, "Name is required"),
+});
 
 const FormSchema = z.object({
   student_id: z.string().min(1, "Student is required."),
@@ -46,7 +51,7 @@ const FormSchema = z.object({
   grandfather_name: z.string().optional(),
   brother_name: z.string().optional(),
   sister_name: z.string().optional(),
-  others_name: z.string().optional(),
+  others: z.array(OtherFamilyMemberSchema).optional(),
 });
 
 type FormData = z.infer<typeof FormSchema>;
@@ -71,8 +76,13 @@ export default function RegistrationPage() {
       grandfather_name: "",
       brother_name: "",
       sister_name: "",
-      others_name: "",
+      others: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "others",
   });
 
   const selectedStudentId = form.watch("student_id");
@@ -105,7 +115,7 @@ export default function RegistrationPage() {
                 grandfather_name: familyData.grandfather_name || "",
                 brother_name: familyData.brother_name || "",
                 sister_name: familyData.sister_name || "",
-                others_name: familyData.others_name || "",
+                others: familyData.others || [],
             });
             setExistingRecordId(familyData.id);
         } else {
@@ -117,7 +127,7 @@ export default function RegistrationPage() {
                 grandfather_name: "",
                 brother_name: "",
                 sister_name: "",
-                others_name: "",
+                others: [],
             });
             setExistingRecordId(undefined);
         }
@@ -275,9 +285,45 @@ export default function RegistrationPage() {
                             <Input id="sister_name" {...form.register("sister_name")} />
                         </div>
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="others_name">Others (comma-separated)</Label>
-                        <Textarea id="others_name" {...form.register("others_name")} />
+                    
+                    <Separator />
+
+                    <div>
+                        <Label>Other Family Members</Label>
+                        <div className="space-y-4 mt-2">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md bg-gray-50/50">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-grow">
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`others.${index}.relationship`} className="text-xs">Relationship</Label>
+                                            <Input
+                                                {...form.register(`others.${index}.relationship`)}
+                                                placeholder="e.g. Uncle"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`others.${index}.name`} className="text-xs">Name</Label>
+                                            <Input
+                                                {...form.register(`others.${index}.name`)}
+                                                placeholder="e.g. John Doe"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                        <X className="h-4 w-4 text-red-500"/>
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => append({ relationship: "", name: "" })}
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4"/>
+                                Add Other Family Member
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

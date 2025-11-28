@@ -12,11 +12,15 @@ export type FamilyData = {
   grandfather_name?: string;
   brother_name?: string;
   sister_name?: string;
-  others_name?: string;
+  others?: { relationship: string; name: string; }[]; // Changed from others_name
 };
 
+type DbFamilyData = Omit<FamilyData, 'others'> & {
+    others_name?: { relationship: string; name: string; }[];
+}
+
 export async function getFamilyData(studentId: string): Promise<FamilyData | null> {
-  const { data, error } = await supabase
+  const { data: dbData, error } = await supabase
     .from("family")
     .select("*")
     .eq("student_id", studentId)
@@ -26,6 +30,18 @@ export async function getFamilyData(studentId: string): Promise<FamilyData | nul
     console.error("Error fetching family data:", error);
     return null;
   }
+
+  if (!dbData) {
+      return null;
+  }
+
+  // Remap others_name to others for frontend consistency
+  const { others_name, ...rest } = dbData as DbFamilyData;
+  const data: FamilyData = {
+      ...rest,
+      others: others_name || [],
+  };
+
 
   return data;
 }

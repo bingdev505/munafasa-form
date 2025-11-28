@@ -4,6 +4,11 @@
 import { z } from "zod";
 import { supabase } from "@/utils/supabaseClient";
 
+const OtherFamilyMemberSchema = z.object({
+  relationship: z.string().min(1, "Relationship is required"),
+  name: z.string().min(1, "Name is required"),
+});
+
 const FamilySchema = z.object({
   student_id: z.string(),
   mother_name: z.string().optional(),
@@ -12,7 +17,7 @@ const FamilySchema = z.object({
   grandfather_name: z.string().optional(),
   brother_name: z.string().optional(),
   sister_name: z.string().optional(),
-  others_name: z.string().optional(),
+  others: z.array(OtherFamilyMemberSchema).optional(),
 });
 
 export type FamilyData = z.infer<typeof FamilySchema>;
@@ -37,14 +42,14 @@ export async function saveFamilyData(
       // Update existing record
       const { error: updateError } = await supabase
         .from("family")
-        .update(parsedData.data)
+        .update({ ...parsedData.data, others_name: parsedData.data.others }) // Remap for db column
         .eq("id", existingRecordId);
       error = updateError;
     } else {
       // Insert new record
       const { error: insertError } = await supabase
         .from("family")
-        .insert(parsedData.data);
+        .insert({ ...parsedData.data, others_name: parsedData.data.others }); // Remap for db column
       error = insertError;
     }
     
