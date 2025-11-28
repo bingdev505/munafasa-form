@@ -292,8 +292,8 @@ export default function RegistrationPage() {
                         <Label>Other Family Members</Label>
                         <div className="space-y-4 mt-2">
                             {fields.map((field, index) => (
-                                <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md bg-gray-50/50">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-grow">
+                                <div key={field.id} className="flex flex-col sm:flex-row items-start sm:items-end gap-2 p-3 border rounded-md bg-gray-50/50">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-grow w-full">
                                         <div className="space-y-1">
                                             <Label htmlFor={`others.${index}.relationship`} className="text-xs">Relationship</Label>
                                             <Input
@@ -309,7 +309,7 @@ export default function RegistrationPage() {
                                             />
                                         </div>
                                     </div>
-                                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="shrink-0 self-center sm:self-end">
                                         <X className="h-4 w-4 text-red-500"/>
                                     </Button>
                                 </div>
@@ -350,3 +350,5 @@ export default function RegistrationPage() {
     </main>
   );
 }
+
+    
