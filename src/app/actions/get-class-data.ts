@@ -31,17 +31,33 @@ export async function getClassData(): Promise<ClassData> {
     return {};
   }
   
-  // Fetch all registered student IDs from family
+  // Fetch all family records to check for registration status
   const { data: familyData, error: familyError } = await supabase
     .from("family")
-    .select("student_id");
+    .select("*");
 
   if (familyError) {
     console.error("Error fetching family data:", familyError);
     // Continue without registration data if it fails
   }
 
-  const registeredStudentIds = new Set(familyData?.map(f => String(f.student_id)) || []);
+  const registeredStudentIds = new Set<string>();
+  if (familyData) {
+    familyData.forEach(record => {
+      const isDataEntered = 
+        record.mother_name || 
+        record.father_name || 
+        record.grandmother_name || 
+        record.grandfather_name || 
+        record.brother_name || 
+        record.sister_name || 
+        (record.others && record.others.length > 0 && record.others.some((o: any) => o.name));
+
+      if (isDataEntered) {
+        registeredStudentIds.add(String(record.student_id));
+      }
+    });
+  }
 
   // Process data into a structured object
   const classData: ClassData = attendanceData.reduce((acc, item) => {
