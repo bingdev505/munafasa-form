@@ -178,11 +178,6 @@ export default function AttendancePage() {
                         Submit for Another Student
                     </Button>
                 </CardContent>
-                <CardFooter className="flex justify-center">
-                    <Link href="/registration" passHref>
-                        <Button variant="link">Go to Registration</Button>
-                    </Link>
-                </CardFooter>
             </Card>
         </main>
     )
@@ -387,11 +382,6 @@ export default function AttendancePage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-            <Link href="/registration" passHref>
-                <Button variant="link">Go to Registration</Button>
-            </Link>
-        </CardFooter>
       </Card>
     </main>
   );
