@@ -20,14 +20,56 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Users } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronDown, Users, ListFilter } from "lucide-react";
+import SummaryCard from "@/components/SummaryCard";
+
+type ColumnKeys = 'student_name' | 'student_class' | 'father_name' | 'mother_name' | 'grandfather_name' | 'grandmother_name' | 'brother_name' | 'sister_name' | 'registered_at';
+
+const columnDisplayNames: Record<ColumnKeys, string> = {
+  student_name: 'Student Name',
+  student_class: 'Class',
+  father_name: "Father's Name",
+  mother_name: "Mother's Name",
+  grandfather_name: "Grandfather's Name",
+  grandmother_name: "Grandmother's Name",
+  brother_name: "Brother's Name",
+  sister_name: "Sister's Name",
+  registered_at: 'Registered At',
+};
 
 export default function RegistrationsPage() {
   const [registrations, setRegistrations] = useState<FullFamilyData[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<FullFamilyData[]>([]);
-  const [nameFilter, setNameFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKeys, boolean>>({
+    student_name: true,
+    student_class: true,
+    father_name: true,
+    mother_name: true,
+    grandfather_name: false,
+    grandmother_name: false,
+    brother_name: false,
+    sister_name: false,
+    registered_at: true,
+  });
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -44,17 +86,32 @@ export default function RegistrationsPage() {
     fetchRegistrations();
   }, []);
 
+  const uniqueClasses = useMemo(() => {
+    const classes = new Set(registrations.map(r => r.student_class).filter(Boolean));
+    return ["all", ...Array.from(classes as Set<string>)];
+  }, [registrations]);
+  
   useEffect(() => {
     let filtered = registrations;
 
-    if (nameFilter) {
-      filtered = filtered.filter((entry) =>
-        entry.student_name?.toLowerCase().includes(nameFilter.toLowerCase())
-      );
+    if (classFilter !== 'all') {
+        filtered = filtered.filter(entry => entry.student_class === classFilter);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((entry) => {
+        const lowercasedFilter = searchTerm.toLowerCase();
+        return (
+          entry.student_name?.toLowerCase().includes(lowercasedFilter) ||
+          entry.student_class?.toLowerCase().includes(lowercasedFilter) ||
+          entry.father_name?.toLowerCase().includes(lowercasedFilter) ||
+          entry.mother_name?.toLowerCase().includes(lowercasedFilter)
+        );
+      });
     }
 
     setFilteredRegistrations(filtered);
-  }, [nameFilter, registrations]);
+  }, [searchTerm, classFilter, registrations]);
 
   const downloadCSV = () => {
     const dataToExport = filteredRegistrations.map(r => ({
@@ -86,9 +143,14 @@ export default function RegistrationsPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-24 w-full max-w-xs" />
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            <Skeleton className="h-10 w-full md:w-64" />
+            <div className="flex gap-2 w-full md:w-auto">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
         </div>
         <div className="rounded-md border">
           <Table>
@@ -120,32 +182,78 @@ export default function RegistrationsPage() {
 
   return (
     <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard title="Total Registrations" value={registrations.length} />
+      </div>
+      
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <Input
-          type="text"
-          placeholder="Filter by student name..."
-          className="w-full md:max-w-sm"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
-        <Button
-          onClick={downloadCSV}
-          className="w-full md:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold"
-        >
-          Download as CSV
-        </Button>
+        <div className="flex flex-col sm:flex-row w-full gap-4">
+            <Input
+            type="text"
+            placeholder="Search name, class, parents..."
+            className="w-full md:max-w-xs"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-full md:max-w-xs">
+                    <SelectValue placeholder="Filter by class" />
+                </SelectTrigger>
+                <SelectContent>
+                    {uniqueClasses.map(c => (
+                        <SelectItem key={c} value={c}>
+                            {c === 'all' ? 'All Classes' : c}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                        <ListFilter className="mr-2 h-4 w-4" />
+                        Columns
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {Object.keys(visibleColumns).map((key) => (
+                        <DropdownMenuCheckboxItem
+                            key={key}
+                            className="capitalize"
+                            checked={visibleColumns[key as ColumnKeys]}
+                            onCheckedChange={(value) =>
+                                setVisibleColumns({
+                                ...visibleColumns,
+                                [key]: !!value,
+                                })
+                            }
+                        >
+                            {columnDisplayNames[key as ColumnKeys]}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+            onClick={downloadCSV}
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold whitespace-nowrap"
+            >
+            Download CSV
+            </Button>
+        </div>
       </div>
 
       <div className="rounded-md border mt-4 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student Name</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Father</TableHead>
-              <TableHead>Mother</TableHead>
-              <TableHead>Registered At</TableHead>
-              <TableHead className="text-center">Family</TableHead>
+                {Object.entries(visibleColumns).map(([key, isVisible]) => 
+                    isVisible && <TableHead key={key}>{columnDisplayNames[key as ColumnKeys]}</TableHead>
+                )}
+              <TableHead className="text-center">Full Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,11 +262,14 @@ export default function RegistrationsPage() {
                 <Collapsible asChild key={reg.id}>
                   <>
                     <TableRow>
-                      <TableCell className="font-medium">{reg.student_name}</TableCell>
-                      <TableCell>{reg.student_class}</TableCell>
-                      <TableCell>{reg.father_name || "-"}</TableCell>
-                      <TableCell>{reg.mother_name || "-"}</TableCell>
-                      <TableCell>{new Date(reg.created_at).toLocaleString()}</TableCell>
+                        {Object.entries(visibleColumns).map(([key, isVisible]) => {
+                            if (!isVisible) return null;
+                            const value = reg[key as keyof FullFamilyData];
+                            if (key === 'registered_at') {
+                                return <TableCell key={key}>{new Date(value as string).toLocaleString()}</TableCell>
+                            }
+                            return <TableCell key={key}>{(value as string) || "-"}</TableCell>
+                        })}
                       <TableCell className="text-center">
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -171,7 +282,7 @@ export default function RegistrationsPage() {
                     </TableRow>
                     <CollapsibleContent asChild>
                       <TableRow>
-                        <TableCell colSpan={6} className="p-0">
+                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 1} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
@@ -204,7 +315,7 @@ export default function RegistrationsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center h-24">
+                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 1} className="text-center h-24">
                   No registration records found.
                 </TableCell>
               </TableRow>
@@ -215,3 +326,5 @@ export default function RegistrationsPage() {
     </div>
   );
 }
+
+    
