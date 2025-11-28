@@ -209,6 +209,7 @@ export default function RegistrationPage() {
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                            <Command>
+                                <CommandInput placeholder="Search for a name..." />
                                 <CommandList>
                                 <CommandEmpty>No student found.</CommandEmpty>
                                 <CommandGroup>
@@ -232,7 +233,6 @@ export default function RegistrationPage() {
                                     ))}
                                 </CommandGroup>
                                 </CommandList>
-                                <CommandInput placeholder="Search for a name..." />
                             </Command>
                         </PopoverContent>
                     </Popover>
