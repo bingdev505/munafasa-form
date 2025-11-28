@@ -262,6 +262,10 @@ export default function AttendanceAdminPage() {
     });
   }
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <>
@@ -320,12 +324,12 @@ export default function AttendanceAdminPage() {
 
   return (
     <>
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-6">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-6 no-print">
         <SummaryCard title="Total Males" value={summaryStats.totalMales} />
         <SummaryCard title="Total Females" value={summaryStats.totalFemales} />
         <SummaryCard title="Grand Total" value={summaryStats.fullTotal} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6 no-print">
         <SummaryCard 
             title="Arriving 29th"
             value={`M: ${summaryStats["29th_males"]} | F: ${summaryStats["29th_females"]}`}
@@ -340,7 +344,7 @@ export default function AttendanceAdminPage() {
         />
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 no-print">
         <div className="flex flex-col sm:flex-row w-full gap-4">
             <Input
             type="text"
@@ -390,10 +394,16 @@ export default function AttendanceAdminPage() {
           >
             Download as CSV
           </Button>
+          <Button
+            onClick={handlePrint}
+            className="w-full sm:w-auto bg-gray-500 hover:bg-gray-700 text-white font-bold whitespace-nowrap"
+          >
+            Print
+          </Button>
         </div>
       </div>
-      {importing && <p className="text-blue-500">Importing data, please wait...</p>}
-      {importError && <p className="text-red-500">{importError}</p>}
+      {importing && <p className="text-blue-500 no-print">Importing data, please wait...</p>}
+      {importError && <p className="text-red-500 no-print">{importError}</p>}
 
       <div className="rounded-md border mt-4 overflow-x-auto">
         <Table>
@@ -406,7 +416,7 @@ export default function AttendanceAdminPage() {
               <TableHead className="text-center">Female</TableHead>
               <TableHead>When Reach</TableHead>
               <TableHead>Created At</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="text-center no-print">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -420,7 +430,7 @@ export default function AttendanceAdminPage() {
                     <TableCell className="text-center">{entry.female}</TableCell>
                     <TableCell>{entry.when_reach}</TableCell>
                     <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
-                    <TableCell className="flex items-center justify-center space-x-1">
+                    <TableCell className="flex items-center justify-center space-x-1 no-print">
                     <Dialog open={editingEntry?.id === entry.id} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
                         <DialogTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(entry)}>

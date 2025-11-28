@@ -83,3 +83,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background-color: #fff;
+  }
+  .print-only {
+    display: block;
+  }
+  @page {
+    size: auto;
+    margin: 0.5in;
+  }
+  .table {
+    overflow: visible;
+  }
+}

@@ -22,7 +22,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-10">
+      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-10 no-print">
         <div className="container mx-auto flex justify-between items-center">
             <h1 className="text-xl font-semibold">Admin Dashboard</h1>
             <nav className="hidden md:flex items-center space-x-2">

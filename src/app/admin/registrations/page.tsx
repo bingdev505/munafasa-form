@@ -153,6 +153,10 @@ export default function RegistrationsPage() {
     document.body.removeChild(link);
   };
   
+  const handlePrint = () => {
+    window.print();
+  };
+  
   if (loading) {
     return (
       <div className="space-y-4">
@@ -196,11 +200,11 @@ export default function RegistrationsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 no-print">
         <SummaryCard title="Total Registrations" value={registrations.length} />
       </div>
 
-       <Card>
+       <Card className="no-print">
         <CardHeader>
           <CardTitle className="text-lg">Registrations by Class</CardTitle>
         </CardHeader>
@@ -216,7 +220,7 @@ export default function RegistrationsPage() {
         </CardContent>
       </Card>
       
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 no-print">
         <div className="flex flex-col sm:flex-row w-full gap-4">
             <Input
             type="text"
@@ -273,6 +277,12 @@ export default function RegistrationsPage() {
             >
             Download CSV
             </Button>
+            <Button
+              onClick={handlePrint}
+              className="w-full sm:w-auto bg-gray-500 hover:bg-gray-700 text-white font-bold whitespace-nowrap"
+            >
+              Print
+            </Button>
         </div>
       </div>
 
@@ -283,7 +293,7 @@ export default function RegistrationsPage() {
                 {Object.entries(visibleColumns).map(([key, isVisible]) => 
                     isVisible && <TableHead key={key}>{columnDisplayNames[key as ColumnKeys]}</TableHead>
                 )}
-              <TableHead className="text-center">Full Details</TableHead>
+              <TableHead className="text-center no-print">Full Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -300,7 +310,7 @@ export default function RegistrationsPage() {
                             }
                             return <TableCell key={key}>{(value as string) || "-"}</TableCell>
                         })}
-                      <TableCell className="text-center">
+                      <TableCell className="text-center no-print">
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" size="sm">
                             <Users className="h-4 w-4 mr-2" />
@@ -311,7 +321,7 @@ export default function RegistrationsPage() {
                       </TableCell>
                     </TableRow>
                     <CollapsibleContent asChild>
-                      <TableRow>
+                      <TableRow className="no-print">
                         <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 1} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
@@ -356,5 +366,3 @@ export default function RegistrationsPage() {
     </div>
   );
 }
-
-    
