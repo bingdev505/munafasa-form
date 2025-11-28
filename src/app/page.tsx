@@ -12,6 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Select,
@@ -39,6 +40,7 @@ import { Loader2, Check, ChevronsUpDown } from "lucide-react";
 import { getClassData, ClassData } from "@/app/actions/get-class-data";
 import { submitAttendance } from "@/app/actions/submit-attendance";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const FormSchema = z.object({
   class: z.string().min(1, "Class is required."),
@@ -177,6 +179,11 @@ export default function AttendancePage() {
                         Submit for Another Student
                     </Button>
                 </CardContent>
+                <CardFooter className="flex justify-center">
+                    <Link href="/registration" passHref>
+                        <Button variant="link">Go to Registration</Button>
+                    </Link>
+                </CardFooter>
             </Card>
         </main>
     )
@@ -293,6 +300,7 @@ export default function AttendancePage() {
                   id="male"
                   type="number"
                   min="0"
+                  max="10"
                   {...form.register("male")}
                 />
                 {form.formState.errors.male && (
@@ -307,6 +315,7 @@ export default function AttendancePage() {
                   id="female"
                   type="number"
                   min="0"
+                  max="10"
                   {...form.register("female")}
                 />
                 {form.formState.errors.female && (
@@ -372,9 +381,12 @@ export default function AttendancePage() {
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-center">
+            <Link href="/registration" passHref>
+                <Button variant="link">Go to Registration</Button>
+            </Link>
+        </CardFooter>
       </Card>
     </main>
   );
 }
-
-    
