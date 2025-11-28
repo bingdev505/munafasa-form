@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronDown, Users, ListFilter } from "lucide-react";
 import SummaryCard from "@/components/SummaryCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ColumnKeys = 'student_name' | 'student_class' | 'father_name' | 'mother_name' | 'grandfather_name' | 'grandmother_name' | 'brother_name' | 'sister_name' | 'registered_at';
 
@@ -86,9 +87,21 @@ export default function RegistrationsPage() {
     fetchRegistrations();
   }, []);
 
-  const uniqueClasses = useMemo(() => {
-    const classes = new Set(registrations.map(r => r.student_class).filter(Boolean));
-    return ["all", ...Array.from(classes as Set<string>)];
+  const { uniqueClasses, classCounts } = useMemo(() => {
+    const classes = new Set<string>();
+    const counts: { [key: string]: number } = {};
+    
+    registrations.forEach(r => {
+        if(r.student_class) {
+            classes.add(r.student_class);
+            counts[r.student_class] = (counts[r.student_class] || 0) + 1;
+        }
+    });
+
+    return {
+        uniqueClasses: ["all", ...Array.from(classes).sort()],
+        classCounts: counts
+    };
   }, [registrations]);
   
   useEffect(() => {
@@ -144,6 +157,7 @@ export default function RegistrationsPage() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-24 w-full max-w-xs" />
+        <Skeleton className="h-28 w-full" />
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
             <Skeleton className="h-10 w-full md:w-64" />
             <div className="flex gap-2 w-full md:w-auto">
@@ -185,6 +199,22 @@ export default function RegistrationsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard title="Total Registrations" value={registrations.length} />
       </div>
+
+       <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Registrations by Class</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {Object.entries(classCounts).sort(([a], [b]) => a.localeCompare(b)).map(([className, count]) => (
+              <div key={className} className="flex items-center space-x-2 text-sm">
+                <span className="font-semibold">{className}:</span>
+                <span className="font-mono text-blue-600 font-bold">{count}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
       
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex flex-col sm:flex-row w-full gap-4">
