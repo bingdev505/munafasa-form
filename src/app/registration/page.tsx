@@ -233,14 +233,15 @@ export default function RegistrationPage() {
                                             form.setValue("student_id", student.id);
                                             setComboboxOpen(false);
                                         }}
+                                        className="flex justify-between items-center"
                                     >
-                                        <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                (student.isRegistered || field.value === student.id) ? "opacity-100 text-green-500" : "opacity-0"
-                                            )}
-                                        />
-                                        {student.name}
+                                        <span>{student.name}</span>
+                                        {student.isRegistered && (
+                                            <Check
+                                                className={cn("h-4 w-4 text-green-500")}
+                                                title="Family registered"
+                                            />
+                                        )}
                                     </CommandItem>
                                     ))}
                                 </CommandGroup>
@@ -353,12 +354,9 @@ export default function RegistrationPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-            <Link href="/" passHref>
-                <Button variant="link">Go to Attendance</Button>
-            </Link>
-        </CardFooter>
       </Card>
     </main>
   );
 }
+
+    

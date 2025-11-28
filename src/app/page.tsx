@@ -153,7 +153,7 @@ export default function AttendancePage() {
   };
   
   const hasSubmittedAttendance = (student: Student) => {
-      return student.when_reach || (student.male && student.male > 0) || (student.female && student.female > 0);
+      return !!student.when_reach || (student.male !== null && student.male > 0) || (student.female !== null && student.female > 0);
   }
 
   const handleResetDevice = () => {
@@ -257,29 +257,33 @@ export default function AttendancePage() {
                                 <CommandList className="max-h-60">
                                 <CommandEmpty>No student found.</CommandEmpty>
                                 <CommandGroup>
-                                    {studentsInClass.map((student) => (
-                                    <CommandItem
-                                        key={student.id}
-                                        value={student.name}
-                                        onSelect={() => {
-                                            form.setValue("student", student.id);
-                                            setComboboxOpen(false);
-                                        }}
-                                        className="flex justify-between items-center"
-                                    >
-                                        <span>{student.name}</span>
-                                        {(hasSubmittedAttendance(student) || student.isRegistered) && (
-                                            <Check
-                                                className={cn(
-                                                    "h-4 w-4",
-                                                    hasSubmittedAttendance(student) ? "text-green-500" : "text-blue-400",
-                                                    field.value === student.id && "opacity-100",
+                                    {studentsInClass.map((student) => {
+                                        const attendanceSubmitted = hasSubmittedAttendance(student);
+                                        const familyRegistered = student.isRegistered;
+                                        const showCheck = attendanceSubmitted || familyRegistered;
+                                        return (
+                                            <CommandItem
+                                                key={student.id}
+                                                value={student.name}
+                                                onSelect={() => {
+                                                    form.setValue("student", student.id);
+                                                    setComboboxOpen(false);
+                                                }}
+                                                className="flex justify-between items-center"
+                                            >
+                                                <span>{student.name}</span>
+                                                {showCheck && (
+                                                    <Check
+                                                        className={cn(
+                                                            "h-4 w-4",
+                                                            attendanceSubmitted ? "text-green-500" : "text-blue-400"
+                                                        )}
+                                                        title={attendanceSubmitted ? 'Attendance submitted' : 'Family registered'}
+                                                    />
                                                 )}
-                                                title={hasSubmittedAttendance(student) ? 'Attendance submitted' : 'Family registered'}
-                                            />
-                                        )}
-                                    </CommandItem>
-                                    ))}
+                                            </CommandItem>
+                                        );
+                                    })}
                                 </CommandGroup>
                                 </CommandList>
                             </Command>
@@ -386,3 +390,5 @@ export default function AttendancePage() {
     </main>
   );
 }
+
+    
