@@ -37,7 +37,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Check, ChevronsUpDown } from "lucide-react";
-import { getClassData, ClassData } from "@/app/actions/get-class-data";
+import { getClassData, ClassData, Student } from "@/app/actions/get-class-data";
 import { submitAttendance } from "@/app/actions/submit-attendance";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -51,8 +51,6 @@ const FormSchema = z.object({
 });
 
 type FormData = z.infer<typeof FormSchema>;
-
-type Student = { id: string; name: string, male?: number | null, female?: number | null, when_reach?: string | null };
 
 const LOCAL_STORAGE_KEY = 'attendance_submitted_student_id';
 
@@ -103,7 +101,8 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (selectedClass && classData[selectedClass]) {
-      setStudentsInClass(classData[selectedClass]);
+      const students = classData[selectedClass];
+      setStudentsInClass(students);
       form.resetField("student", { defaultValue: "" });
     } else {
       setStudentsInClass([]);
@@ -153,7 +152,7 @@ export default function AttendancePage() {
     setIsPending(false);
   };
   
-  const hasSubmitted = (student: Student) => {
+  const hasSubmittedAttendance = (student: Student) => {
       return student.when_reach || (student.male && student.male > 0) || (student.female && student.female > 0);
   }
 
@@ -207,8 +206,10 @@ export default function AttendancePage() {
                 control={form.control}
                 render={({ field }) => (
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue("student", "");
+                    }}
                     value={field.value}
                     disabled={isLoading}
                   >
@@ -269,14 +270,19 @@ export default function AttendancePage() {
                                             form.setValue("student", student.id);
                                             setComboboxOpen(false);
                                         }}
+                                        className="flex justify-between items-center"
                                     >
-                                        <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                (hasSubmitted(student) || field.value === student.id) ? "opacity-100 text-green-500" : "opacity-0"
-                                            )}
-                                        />
-                                        {student.name}
+                                        <span>{student.name}</span>
+                                        {(hasSubmittedAttendance(student) || student.isRegistered) && (
+                                            <Check
+                                                className={cn(
+                                                    "h-4 w-4",
+                                                    hasSubmittedAttendance(student) ? "text-green-500" : "text-blue-400",
+                                                    field.value === student.id && "opacity-100",
+                                                )}
+                                                title={hasSubmittedAttendance(student) ? 'Attendance submitted' : 'Family registered'}
+                                            />
+                                        )}
                                     </CommandItem>
                                     ))}
                                 </CommandGroup>
@@ -335,7 +341,7 @@ export default function AttendancePage() {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    value={field.value}
+                    value={field.value || ""}
                   >
                     <SelectTrigger id="when_reach">
                       <SelectValue placeholder="Select a time" />
@@ -390,5 +396,3 @@ export default function AttendancePage() {
     </main>
   );
 }
-
-    

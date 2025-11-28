@@ -87,15 +87,16 @@ export default function RegistrationPage() {
 
   const selectedStudentId = form.watch("student_id");
 
+  const fetchInitialData = async () => {
+    setIsLoading(true);
+    const data = await getClassData();
+    setClassData(data);
+    const students = Object.values(data).flat();
+    setAllStudents(students);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      const data = await getClassData();
-      setClassData(data);
-      const students = Object.values(data).flat();
-      setAllStudents(students);
-      setIsLoading(false);
-    };
     fetchInitialData();
   }, []);
 
@@ -138,7 +139,17 @@ export default function RegistrationPage() {
         fetchAndSetFamilyData(selectedStudentId);
     } else {
         setSelectedStudent(null);
-        form.reset();
+        form.reset({
+            student_id: "",
+            mother_name: "",
+            father_name: "",
+            grandmother_name: "",
+            grandfather_name: "",
+            brother_name: "",
+            sister_name: "",
+            others: [],
+        });
+        setExistingRecordId(undefined);
     }
   }, [selectedStudentId, allStudents, form]);
 
@@ -150,7 +161,8 @@ export default function RegistrationPage() {
 
     if (result.success) {
       toast({ title: "Success", description: result.message });
-      // Refetch data to get new record ID if it was an insert
+      // Refetch student data to update registration status
+      await fetchInitialData();
       if (!existingRecordId) {
         const familyData = await getFamilyData(data.student_id);
         if (familyData) {
@@ -225,7 +237,7 @@ export default function RegistrationPage() {
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                field.value === student.id ? "opacity-100" : "opacity-0"
+                                                (student.isRegistered || field.value === student.id) ? "opacity-100 text-green-500" : "opacity-0"
                                             )}
                                         />
                                         {student.name}
@@ -350,5 +362,3 @@ export default function RegistrationPage() {
     </main>
   );
 }
-
-    
