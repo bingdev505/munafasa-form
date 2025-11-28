@@ -12,12 +12,11 @@ export type FamilyData = {
   grandfather_name?: string;
   brother_name?: string;
   sister_name?: string;
-  others?: { relationship: string; name: string; }[]; // Changed from others_name
+  others?: { relationship: string; name: string; }[];
 };
 
-type DbFamilyData = Omit<FamilyData, 'others' | 'student_id'> & {
+type DbFamilyData = Omit<FamilyData, 'student_id'> & {
     student_id: number | string;
-    others_name?: { relationship: string; name: string; }[];
 }
 
 export async function getFamilyData(studentId: string): Promise<FamilyData | null> {
@@ -36,14 +35,12 @@ export async function getFamilyData(studentId: string): Promise<FamilyData | nul
       return null;
   }
 
-  // Remap others_name to others for frontend consistency and ensure student_id is a string
-  const { others_name, student_id, ...rest } = dbData as DbFamilyData;
+  // Ensure student_id is a string
+  const { student_id, ...rest } = dbData as DbFamilyData;
   const data: FamilyData = {
       ...rest,
       student_id: String(student_id),
-      others: others_name || [],
   };
-
 
   return data;
 }

@@ -42,14 +42,14 @@ export async function saveFamilyData(
       // Update existing record
       const { error: updateError } = await supabase
         .from("family")
-        .update({ ...parsedData.data, others_name: parsedData.data.others }) // Remap for db column
+        .update(parsedData.data)
         .eq("id", existingRecordId);
       error = updateError;
     } else {
       // Insert new record
       const { error: insertError } = await supabase
         .from("family")
-        .insert({ ...parsedData.data, others_name: parsedData.data.others }); // Remap for db column
+        .insert(parsedData.data);
       error = insertError;
     }
     
