@@ -366,3 +366,5 @@ export default function RegistrationsPage() {
     </div>
   );
 }
+
+    
