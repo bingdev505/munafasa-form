@@ -299,7 +299,7 @@ export default function RegistrationsPage() {
           <TableBody>
             {filteredRegistrations.length > 0 ? (
               filteredRegistrations.map((reg) => (
-                <Collapsible asChild key={reg.id}>
+                <Collapsible key={reg.id} asChild>
                   <>
                     <TableRow>
                         {Object.entries(visibleColumns).map(([key, isVisible]) => {
