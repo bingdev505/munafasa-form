@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getAllFamilyData, FullFamilyData } from "@/app/actions/get-all-family-data";
+import { getAllFamilyData, FullFamilyData, FamilyMember } from "@/app/actions/get-all-family-data";
 import { deleteFamilyRegistration } from "@/app/actions/delete-family-registration";
 import {
   Table,
@@ -34,37 +34,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Users, ListFilter, Edit, Trash2 } from "lucide-react";
+import { ChevronDown, Users, Edit, Trash2 } from "lucide-react";
 import SummaryCard from "@/components/SummaryCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-type ColumnKeys = 'student_name' | 'student_class' | 'father_name' | 'mother_name' | 'grandfather_name' | 'grandmother_name' | 'brother_name' | 'sister_name' | 'registered_at';
-
-const columnDisplayNames: Record<ColumnKeys, string> = {
-  student_name: 'Student Name',
-  student_class: 'Class',
-  father_name: "Father's Name",
-  mother_name: "Mother's Name",
-  grandfather_name: "Grandfather's Name",
-  grandmother_name: "Grandmother's Name",
-  brother_name: "Brother's Name",
-  sister_name: "Sister's Name",
-  registered_at: 'Registered At',
+// Helper to format column keys into readable names
+const formatColumnName = (key: string) => {
+  return key
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 export default function RegistrationsPage() {
@@ -76,17 +62,6 @@ export default function RegistrationsPage() {
   const [classFilter, setClassFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKeys, boolean>>({
-    student_name: true,
-    student_class: true,
-    father_name: true,
-    mother_name: true,
-    grandfather_name: false,
-    grandmother_name: false,
-    brother_name: false,
-    sister_name: false,
-    registered_at: true,
-  });
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -120,6 +95,44 @@ export default function RegistrationsPage() {
     };
   }, [registrations]);
   
+  const dynamicColumns = useMemo(() => {
+    const standardColumns: (keyof Omit<FullFamilyData, 'id' | 'student_id' | 'created_at' | 'others'>)[] = [
+      'student_name',
+      'student_class',
+      'father_name',
+      'mother_name',
+      'grandfather_name',
+      'grandmother_name',
+      'brother_name',
+      'sister_name',
+    ];
+
+    const activeColumns = new Set<string>(['student_name', 'student_class']);
+    const customRelationshipKeys = new Set<string>();
+
+    for (const reg of filteredRegistrations) {
+      // Check standard columns
+      for (const col of standardColumns) {
+        if (reg[col]) {
+          activeColumns.add(col);
+        }
+      }
+      // Check for custom relationships
+      if (reg.others) {
+        for (const other of reg.others) {
+          if (other.relationship) {
+            customRelationshipKeys.add(other.relationship);
+          }
+        }
+      }
+    }
+    
+    // Ordered standard columns
+    const orderedStandardColumns = standardColumns.filter(col => activeColumns.has(col));
+    
+    return [...orderedStandardColumns, ...Array.from(customRelationshipKeys).sort()];
+  }, [filteredRegistrations]);
+  
   useEffect(() => {
     let filtered = registrations;
 
@@ -128,34 +141,36 @@ export default function RegistrationsPage() {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter((entry) => {
-        const lowercasedFilter = searchTerm.toLowerCase();
-        return (
-          entry.student_name?.toLowerCase().includes(lowercasedFilter) ||
-          entry.student_class?.toLowerCase().includes(lowercasedFilter) ||
-          entry.father_name?.toLowerCase().includes(lowercasedFilter) ||
-          entry.mother_name?.toLowerCase().includes(lowercasedFilter)
-        );
-      });
+      const lowercasedFilter = searchTerm.toLowerCase();
+      filtered = filtered.filter((entry) => 
+        Object.values(entry).some(value =>
+          String(value).toLowerCase().includes(lowercasedFilter)
+        ) || (entry.others && entry.others.some(o => o.name.toLowerCase().includes(lowercasedFilter) || o.relationship.toLowerCase().includes(lowercasedFilter)))
+      );
     }
 
     setFilteredRegistrations(filtered);
   }, [searchTerm, classFilter, registrations]);
 
   const downloadCSV = () => {
-    const dataToExport = filteredRegistrations.map(r => ({
-      "Student ID": r.student_id,
-      "Student Name": r.student_name,
-      "Class": r.student_class,
-      "Father's Name": r.father_name,
-      "Mother's Name": r.mother_name,
-      "Grandfather's Name": r.grandfather_name,
-      "Grandmother's Name": r.grandmother_name,
-      "Brother's Name": r.brother_name,
-      "Sister's Name": r.sister_name,
-      "Other Members": (r.others || []).map(o => `${o.relationship}: ${o.name}`).join('; '),
-      "Registered At": new Date(r.created_at).toLocaleString(),
-    }));
+    const dataToExport = filteredRegistrations.map(r => {
+        const baseData: {[key: string]: any} = {
+            "Student ID": r.student_id,
+            "Student Name": r.student_name,
+            "Class": r.student_class,
+            "Father's Name": r.father_name,
+            "Mother's Name": r.mother_name,
+            "Grandfather's Name": r.grandfather_name,
+            "Grandmother's Name": r.grandmother_name,
+            "Brother's Name": r.brother_name,
+            "Sister's Name": r.sister_name,
+            "Registered At": new Date(r.created_at).toLocaleString(),
+        };
+        (r.others || []).forEach(o => {
+            baseData[o.relationship] = o.name;
+        });
+        return baseData;
+    });
 
     const csv = Papa.unparse(dataToExport);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -254,7 +269,7 @@ export default function RegistrationsPage() {
         <div className="flex flex-col sm:flex-row w-full gap-4">
             <Input
             type="text"
-            placeholder="Search name, class, parents..."
+            placeholder="Search all fields..."
             className="w-full md:max-w-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -274,33 +289,6 @@ export default function RegistrationsPage() {
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full sm:w-auto">
-                        <ListFilter className="mr-2 h-4 w-4" />
-                        Columns
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Object.keys(visibleColumns).map((key) => (
-                        <DropdownMenuCheckboxItem
-                            key={key}
-                            className="capitalize"
-                            checked={visibleColumns[key as ColumnKeys]}
-                            onCheckedChange={(value) =>
-                                setVisibleColumns({
-                                ...visibleColumns,
-                                [key]: !!value,
-                                })
-                            }
-                        >
-                            {columnDisplayNames[key as ColumnKeys]}
-                        </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
             <Button
             onClick={downloadCSV}
             className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold whitespace-nowrap"
@@ -321,9 +309,9 @@ export default function RegistrationsPage() {
           <TableHeader>
             <TableRow>
                 <TableHead>S.No</TableHead>
-                {Object.entries(visibleColumns).map(([key, isVisible]) => 
-                    isVisible && <TableHead key={key}>{columnDisplayNames[key as ColumnKeys]}</TableHead>
-                )}
+                {dynamicColumns.map((key) => (
+                  <TableHead key={key}>{formatColumnName(key)}</TableHead>
+                ))}
               <TableHead className="text-center no-print">Full Details</TableHead>
               <TableHead className="text-center no-print">Actions</TableHead>
             </TableRow>
@@ -335,14 +323,19 @@ export default function RegistrationsPage() {
                   <>
                     <TableRow>
                       <TableCell>{index + 1}</TableCell>
-                        {Object.entries(visibleColumns).map(([key, isVisible]) => {
-                            if (!isVisible) return null;
-                            const value = reg[key as keyof FullFamilyData];
-                            if (key === 'registered_at') {
-                                return <TableCell key={key}>{new Date(value as string).toLocaleString()}</TableCell>
-                            }
-                            return <TableCell key={key}>{(value as string) || "-"}</TableCell>
-                        })}
+                      {dynamicColumns.map((key) => {
+                        let value: React.ReactNode = "-";
+                        if (key in reg) {
+                          value = reg[key as keyof FullFamilyData] as string | number | null;
+                        } else {
+                          // It's a custom relationship
+                          const otherMember = reg.others?.find(o => o.relationship === key);
+                          if (otherMember) {
+                            value = otherMember.name;
+                          }
+                        }
+                        return <TableCell key={key}>{value || "-"}</TableCell>;
+                      })}
                       <TableCell className="text-center no-print">
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -381,7 +374,7 @@ export default function RegistrationsPage() {
                     </TableRow>
                     <CollapsibleContent asChild>
                       <TableRow className="no-print">
-                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 3} className="p-0">
+                        <TableCell colSpan={dynamicColumns.length + 3} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
@@ -414,7 +407,7 @@ export default function RegistrationsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 3} className="text-center h-24">
+                <TableCell colSpan={dynamicColumns.length + 3} className="text-center h-24">
                   No registration records found.
                 </TableCell>
               </TableRow>
@@ -425,3 +418,5 @@ export default function RegistrationsPage() {
     </div>
   );
 }
+
+    
