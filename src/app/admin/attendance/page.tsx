@@ -5,7 +5,7 @@ import { useEffect, useState, ChangeEvent, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getAttendance } from "@/app/actions/get-attendance";
+import { getAttendance, AttendanceWithRegistration } from "@/app/actions/get-attendance";
 import { saveImportedAttendance } from "@/app/actions/save-attendance";
 import { updateAttendance } from "@/app/actions/update-attendance";
 import { deleteAttendance } from "@/app/actions/delete-attendance";
@@ -49,19 +49,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SummaryCard from "@/components/SummaryCard";
-
-interface Attendance {
-  id: number;
-  name: string;
-  male: number | null;
-  female: number | null;
-  when_reach: string | null;
-  class: string;
-  created_at: string;
-}
 
 const editFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -74,16 +64,17 @@ const editFormSchema = z.object({
 type EditFormData = z.infer<typeof editFormSchema>;
 
 export default function AttendanceAdminPage() {
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
-  const [filteredAttendance, setFilteredAttendance] = useState<Attendance[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceWithRegistration[]>([]);
+  const [filteredAttendance, setFilteredAttendance] = useState<AttendanceWithRegistration[]>([]);
   const [nameFilter, setNameFilter] = useState("");
   const [reachTimeFilter, setReachTimeFilter] = useState("all");
   const [submissionStatusFilter, setSubmissionStatusFilter] = useState("all");
+  const [registrationStatusFilter, setRegistrationStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
-  const [editingEntry, setEditingEntry] = useState<Attendance | null>(null);
+  const [editingEntry, setEditingEntry] = useState<AttendanceWithRegistration | null>(null);
 
   const { toast } = useToast();
 
@@ -121,7 +112,7 @@ export default function AttendanceAdminPage() {
     }
 
     if (submissionStatusFilter !== "all") {
-      const hasSubmitted = (entry: Attendance) => 
+      const hasSubmitted = (entry: AttendanceWithRegistration) => 
         !!entry.when_reach || (entry.male != null && entry.male > 0) || (entry.female != null && entry.female > 0);
       
       if (submissionStatusFilter === "submitted") {
@@ -130,10 +121,18 @@ export default function AttendanceAdminPage() {
         filtered = filtered.filter(entry => !hasSubmitted(entry));
       }
     }
+    
+    if (registrationStatusFilter !== "all") {
+      if (registrationStatusFilter === "registered") {
+        filtered = filtered.filter(entry => entry.isRegistered);
+      } else if (registrationStatusFilter === "not-registered") {
+        filtered = filtered.filter(entry => !entry.isRegistered);
+      }
+    }
 
 
     setFilteredAttendance(filtered);
-  }, [nameFilter, reachTimeFilter, submissionStatusFilter, attendance]);
+  }, [nameFilter, reachTimeFilter, submissionStatusFilter, registrationStatusFilter, attendance]);
 
   const summaryStats = useMemo(() => {
     const stats = {
@@ -171,9 +170,9 @@ export default function AttendanceAdminPage() {
   }, [attendance]);
 
   const downloadCSV = () => {
-    const headers = ["ID", "Name", "Class", "Male", "Female", "When Reach", "Created At"];
+    const headers = ["ID", "Name", "Class", "Male", "Female", "When Reach", "Registered", "Created At"];
     const rows = filteredAttendance.map((entry) =>
-      [entry.id, entry.name, entry.class, entry.male, entry.female, entry.when_reach, new Date(entry.created_at).toLocaleString()].join(",")
+      [entry.id, entry.name, entry.class, entry.male, entry.female, entry.when_reach, entry.isRegistered ? 'Yes' : 'No', new Date(entry.created_at).toLocaleString()].join(",")
     );
     const csvContent = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -251,7 +250,7 @@ export default function AttendanceAdminPage() {
     }
   };
   
-  const openEditDialog = (entry: Attendance) => {
+  const openEditDialog = (entry: AttendanceWithRegistration) => {
     setEditingEntry(entry);
     form.reset({
       name: entry.name,
@@ -369,9 +368,19 @@ export default function AttendanceAdminPage() {
                     <SelectValue placeholder="Filter by submission status" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="all">All Submission Statuses</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="not-submitted">Not Submitted</SelectItem>
+                </SelectContent>
+            </Select>
+             <Select value={registrationStatusFilter} onValueChange={setRegistrationStatusFilter}>
+                <SelectTrigger className="w-full md:max-w-xs">
+                    <SelectValue placeholder="Filter by registration" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Registrations</SelectItem>
+                    <SelectItem value="registered">Registered</SelectItem>
+                    <SelectItem value="not-registered">Not Registered</SelectItem>
                 </SelectContent>
             </Select>
         </div>
@@ -415,6 +424,7 @@ export default function AttendanceAdminPage() {
               <TableHead className="text-center">Male</TableHead>
               <TableHead className="text-center">Female</TableHead>
               <TableHead>When Reach</TableHead>
+              <TableHead className="text-center">Registered</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className="text-center no-print">Actions</TableHead>
             </TableRow>
@@ -429,6 +439,9 @@ export default function AttendanceAdminPage() {
                     <TableCell className="text-center">{entry.male}</TableCell>
                     <TableCell className="text-center">{entry.female}</TableCell>
                     <TableCell>{entry.when_reach}</TableCell>
+                    <TableCell className="text-center">
+                        {entry.isRegistered ? <CheckCircle2 className="h-5 w-5 text-green-500 mx-auto" /> : <XCircle className="h-5 w-5 text-red-500 mx-auto" />}
+                    </TableCell>
                     <TableCell>{new Date(entry.created_at).toLocaleString()}</TableCell>
                     <TableCell className="flex items-center justify-center space-x-1 no-print">
                     <Dialog open={editingEntry?.id === entry.id} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
@@ -502,7 +515,7 @@ export default function AttendanceAdminPage() {
                 ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={8} className="text-center h-24">
+                    <TableCell colSpan={9} className="text-center h-24">
                         No results found.
                     </TableCell>
                 </TableRow>
