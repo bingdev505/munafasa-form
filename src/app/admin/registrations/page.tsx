@@ -361,7 +361,8 @@ export default function RegistrationsPage() {
                               );
                           }
                         } else if (key in reg) {
-                          value = reg[key as keyof FullFamilyData] as string | number | null;
+                          const regValue = reg[key as keyof FullFamilyData];
+                          value = (typeof regValue === 'string' || typeof regValue === 'number') ? regValue : null;
                         }
                         return <TableCell key={key}>{value || "-"}</TableCell>;
                       })}
@@ -415,14 +416,16 @@ export default function RegistrationsPage() {
                                     <div><strong>Brother:</strong> {reg.brother_name || "-"}</div>
                                     <div><strong>Sister:</strong> {reg.sister_name || "-"}</div>
                                 </div>
-                                {reg.others && reg.others.length > 0 && (
+                                {reg.others && reg.others.length > 0 && reg.others.some(m => m.name) && (
                                     <div className="mt-4">
                                         <h5 className="font-semibold mb-1">Other Members:</h5>
                                         <ul className="list-disc list-inside space-y-1">
                                             {reg.others.map((member, index) => (
+                                                member.name && member.relationship ? (
                                                 <li key={index}>
                                                     <span className="font-semibold">{member.relationship}:</span> {member.name}
                                                 </li>
+                                                ) : null
                                             ))}
                                         </ul>
                                     </div>
@@ -447,3 +450,5 @@ export default function RegistrationsPage() {
     </div>
   );
 }
+
+    
