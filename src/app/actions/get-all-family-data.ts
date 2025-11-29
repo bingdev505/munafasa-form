@@ -9,7 +9,7 @@ export type FamilyMember = {
 };
 
 export type FullFamilyData = {
-  id: number;
+  id: number; // This will be the family record ID if registered, or student ID if not.
   student_id: string;
   student_name: string | null;
   student_class: string | null;
@@ -21,51 +21,93 @@ export type FullFamilyData = {
   sister_name?: string;
   others?: FamilyMember[];
   created_at: string;
+  isRegistered: boolean;
 };
 
 export async function getAllFamilyData(): Promise<{ data: FullFamilyData[] | null; error: string | null; }> {
   try {
-    const { data: familyData, error: familyError } = await supabase
-      .from("family")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // 1. Fetch all students from the attendance table. This is our master list.
+    const { data: allStudents, error: attendanceError } = await supabase
+      .from("attendance")
+      .select("id, name, class, created_at")
+      .order("name", { ascending: true });
 
-    if (familyError) {
-      console.error("Error fetching family data:", familyError);
-      return { data: null, error: `Failed to fetch family data: ${familyError.message}` };
+    if (attendanceError) {
+      console.error("Error fetching attendance data:", attendanceError);
+      return { data: null, error: `Failed to fetch student list: ${attendanceError.message}` };
     }
     
-    if (!familyData) {
+    if (!allStudents) {
       return { data: [], error: null };
     }
 
-    const studentIds = familyData.map(f => f.student_id);
+    // 2. Fetch all family data to find out who is registered.
+    const { data: familyData, error: familyError } = await supabase
+      .from("family")
+      .select("*");
 
-    const { data: attendanceData, error: attendanceError } = await supabase
-      .from("attendance")
-      .select("id, name, class")
-      .in("id", studentIds);
-
-    if (attendanceError) {
-      console.error("Error fetching attendance data for names:", attendanceError);
-      // Proceed without names if this fails, but log the error
+    if (familyError) {
+      console.error("Error fetching family data:", familyError);
+      // We can continue, but registration status will be incomplete.
     }
 
-    const studentInfoMap = new Map(
-        attendanceData?.map(a => [String(a.id), { name: a.name, class: a.class }]) || []
-    );
+    // 3. Create a map of registered students for quick lookup.
+    const familyDataMap = new Map<string, typeof familyData[number]>();
+    if (familyData) {
+      familyData.forEach(familyRecord => {
+        // Check if there is actual data entered.
+        const isDataEntered = 
+          familyRecord.mother_name || 
+          familyRecord.father_name || 
+          familyRecord.grandmother_name || 
+          familyRecord.grandfather_name || 
+          familyRecord.brother_name || 
+          familyRecord.sister_name || 
+          (familyRecord.others && familyRecord.others.length > 0 && familyRecord.others.some((o: any) => o.name));
+        
+        if (isDataEntered) {
+          familyDataMap.set(String(familyRecord.student_id), familyRecord);
+        }
+      });
+    }
 
-    const fullData: FullFamilyData[] = familyData.map(familyRecord => {
-        const studentInfo = studentInfoMap.get(String(familyRecord.student_id));
+    // 4. Combine the lists.
+    const fullData: FullFamilyData[] = allStudents.map(student => {
+      const studentIdStr = String(student.id);
+      const familyRecord = familyDataMap.get(studentIdStr);
+
+      if (familyRecord) {
+        // Student is registered
         return {
-            ...familyRecord,
-            id: familyRecord.id,
-            student_id: String(familyRecord.student_id),
-            student_name: studentInfo?.name || `ID: ${familyRecord.student_id}`,
-            student_class: studentInfo?.class || 'N/A',
-            others: familyRecord.others || []
+          id: familyRecord.id,
+          student_id: studentIdStr,
+          student_name: student.name,
+          student_class: student.class,
+          mother_name: familyRecord.mother_name,
+          father_name: familyRecord.father_name,
+          grandmother_name: familyRecord.grandmother_name,
+          grandfather_name: familyRecord.grandfather_name,
+          brother_name: familyRecord.brother_name,
+          sister_name: familyRecord.sister_name,
+          others: familyRecord.others || [],
+          created_at: familyRecord.created_at,
+          isRegistered: true,
         };
+      } else {
+        // Student is not registered
+        return {
+          id: student.id, // Using student id as the key here
+          student_id: studentIdStr,
+          student_name: student.name,
+          student_class: student.class,
+          created_at: student.created_at,
+          isRegistered: false,
+        };
+      }
     });
+
+    // Sort so registered students appear first.
+    fullData.sort((a, b) => (b.isRegistered ? 1 : 0) - (a.isRegistered ? 1 : 0) || a.student_name!.localeCompare(b.student_name!));
 
     return { data: fullData, error: null };
 
