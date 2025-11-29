@@ -309,6 +309,16 @@ function RegistrationPageContent() {
                         </div>
                     </div>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="sister_name">Sister&apos;s Name</Label>
+                            <Input id="sister_name" {...form.register("sister_name")} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="brother_name">Brother&apos;s Name</Label>
+                            <Input id="brother_name" {...form.register("brother_name")} />
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="grandfather_name">Grandfather&apos;s Name</Label>
                             <Input id="grandfather_name" {...form.register("grandfather_name")} />
@@ -316,16 +326,6 @@ function RegistrationPageContent() {
                          <div className="space-y-2">
                             <Label htmlFor="grandmother_name">Grandmother&apos;s Name</Label>
                             <Input id="grandmother_name" {...form.register("grandmother_name")} />
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="brother_name">Brother&apos;s Name</Label>
-                            <Input id="brother_name" {...form.register("brother_name")} />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="sister_name">Sister&apos;s Name</Label>
-                            <Input id="sister_name" {...form.register("sister_name")} />
                         </div>
                     </div>
                     
