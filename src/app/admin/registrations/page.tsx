@@ -40,7 +40,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Users, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, Users, Edit, Trash2, Settings2 } from "lucide-react";
 import SummaryCard from "@/components/SummaryCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +61,20 @@ const formatColumnName = (key: string) => {
     .join(' ');
 };
 
+const ALL_COLUMNS = {
+  student_name: "Student Name",
+  student_class: "Student Class",
+  father_name: "Father's Name",
+  mother_name: "Mother's Name",
+  grandfather_name: "Grandfather's Name",
+  grandmother_name: "Grandmother's Name",
+  brother_name: "Brother's Name",
+  sister_name: "Sister's Name",
+  others: "Other Members",
+};
+
+type ColumnKeys = keyof typeof ALL_COLUMNS;
+
 export default function RegistrationsPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -62,6 +84,18 @@ export default function RegistrationsPage() {
   const [classFilter, setClassFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKeys, boolean>>({
+    student_name: true,
+    student_class: true,
+    father_name: true,
+    mother_name: true,
+    grandfather_name: false,
+    grandmother_name: false,
+    brother_name: false,
+    sister_name: false,
+    others: true,
+  });
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -94,44 +128,6 @@ export default function RegistrationsPage() {
         classCounts: counts
     };
   }, [registrations]);
-  
-  const dynamicColumns = useMemo(() => {
-    const standardColumns: (keyof Omit<FullFamilyData, 'id' | 'student_id' | 'created_at' | 'others'>)[] = [
-      'student_name',
-      'student_class',
-      'father_name',
-      'mother_name',
-      'grandfather_name',
-      'grandmother_name',
-      'brother_name',
-      'sister_name',
-    ];
-
-    const activeColumns = new Set<string>(['student_name', 'student_class']);
-    const customRelationshipKeys = new Set<string>();
-
-    for (const reg of filteredRegistrations) {
-      // Check standard columns
-      for (const col of standardColumns) {
-        if (reg[col]) {
-          activeColumns.add(col);
-        }
-      }
-      // Check for custom relationships
-      if (reg.others) {
-        for (const other of reg.others) {
-          if (other.relationship) {
-            customRelationshipKeys.add(other.relationship);
-          }
-        }
-      }
-    }
-    
-    // Ordered standard columns
-    const orderedStandardColumns = standardColumns.filter(col => activeColumns.has(col));
-    
-    return [...orderedStandardColumns, ...Array.from(customRelationshipKeys).sort()];
-  }, [filteredRegistrations]);
   
   useEffect(() => {
     let filtered = registrations;
@@ -201,6 +197,10 @@ export default function RegistrationsPage() {
       toast({ variant: "destructive", title: "Delete Failed", description: result.message });
     }
   };
+
+  const visibleColumnKeys = Object.entries(visibleColumns)
+    .filter(([, isVisible]) => isVisible)
+    .map(([key]) => key as ColumnKeys);
   
   if (loading) {
     return (
@@ -289,6 +289,33 @@ export default function RegistrationsPage() {
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {Object.entries(ALL_COLUMNS).map(([key, name]) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    className="capitalize"
+                    checked={visibleColumns[key as ColumnKeys]}
+                    onCheckedChange={(value) =>
+                      setVisibleColumns((prev) => ({
+                        ...prev,
+                        [key]: !!value,
+                      }))
+                    }
+                  >
+                    {name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
             onClick={downloadCSV}
             className="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold whitespace-nowrap"
@@ -309,8 +336,8 @@ export default function RegistrationsPage() {
           <TableHeader>
             <TableRow>
                 <TableHead>S.No</TableHead>
-                {dynamicColumns.map((key) => (
-                  <TableHead key={key}>{formatColumnName(key)}</TableHead>
+                {visibleColumnKeys.map((key) => (
+                  <TableHead key={key}>{ALL_COLUMNS[key]}</TableHead>
                 ))}
               <TableHead className="text-center no-print">Full Details</TableHead>
               <TableHead className="text-center no-print">Actions</TableHead>
@@ -323,16 +350,18 @@ export default function RegistrationsPage() {
                   <>
                     <TableRow>
                       <TableCell>{index + 1}</TableCell>
-                      {dynamicColumns.map((key) => {
+                      {visibleColumnKeys.map((key) => {
                         let value: React.ReactNode = "-";
-                        if (key in reg) {
-                          value = reg[key as keyof FullFamilyData] as string | number | null;
-                        } else {
-                          // It's a custom relationship
-                          const otherMember = reg.others?.find(o => o.relationship === key);
-                          if (otherMember) {
-                            value = otherMember.name;
+                        if (key === 'others') {
+                          if (reg.others && reg.others.length > 0) {
+                              value = (
+                                <ul className="list-inside">
+                                  {reg.others.map((o, i) => o.name && o.relationship ? <li key={i}>{`${o.relationship}: ${o.name}`}</li>: null)}
+                                </ul>
+                              );
                           }
+                        } else if (key in reg) {
+                          value = reg[key as keyof FullFamilyData] as string | number | null;
                         }
                         return <TableCell key={key}>{value || "-"}</TableCell>;
                       })}
@@ -374,7 +403,7 @@ export default function RegistrationsPage() {
                     </TableRow>
                     <CollapsibleContent asChild>
                       <TableRow className="no-print">
-                        <TableCell colSpan={dynamicColumns.length + 3} className="p-0">
+                        <TableCell colSpan={visibleColumnKeys.length + 3} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
@@ -407,7 +436,7 @@ export default function RegistrationsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={dynamicColumns.length + 3} className="text-center h-24">
+                <TableCell colSpan={visibleColumnKeys.length + 3} className="text-center h-24">
                   No registration records found.
                 </TableCell>
               </TableRow>
@@ -418,5 +447,3 @@ export default function RegistrationsPage() {
     </div>
   );
 }
-
-    
