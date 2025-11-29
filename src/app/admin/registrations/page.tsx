@@ -320,6 +320,7 @@ export default function RegistrationsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+                <TableHead>S.No</TableHead>
                 {Object.entries(visibleColumns).map(([key, isVisible]) => 
                     isVisible && <TableHead key={key}>{columnDisplayNames[key as ColumnKeys]}</TableHead>
                 )}
@@ -329,10 +330,11 @@ export default function RegistrationsPage() {
           </TableHeader>
           <TableBody>
             {filteredRegistrations.length > 0 ? (
-              filteredRegistrations.map((reg) => (
-                <Collapsible key={reg.id} asChild>
+              filteredRegistrations.map((reg, index) => (
+                <Collapsible asChild key={reg.id}>
                   <>
                     <TableRow>
+                      <TableCell>{index + 1}</TableCell>
                         {Object.entries(visibleColumns).map(([key, isVisible]) => {
                             if (!isVisible) return null;
                             const value = reg[key as keyof FullFamilyData];
@@ -379,7 +381,7 @@ export default function RegistrationsPage() {
                     </TableRow>
                     <CollapsibleContent asChild>
                       <TableRow className="no-print">
-                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 2} className="p-0">
+                        <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 3} className="p-0">
                             <div className="p-4 bg-gray-100 dark:bg-gray-800">
                                 <h4 className="font-semibold mb-2">Full Family Details:</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
@@ -412,7 +414,7 @@ export default function RegistrationsPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 2} className="text-center h-24">
+                <TableCell colSpan={Object.values(visibleColumns).filter(v => v).length + 3} className="text-center h-24">
                   No registration records found.
                 </TableCell>
               </TableRow>
