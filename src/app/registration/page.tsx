@@ -36,22 +36,42 @@ import { saveFamilyData } from "@/app/actions/save-family-data";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 
 const OtherFamilyMemberSchema = z.object({
   relationship: z.string().min(1, "Relationship is required"),
   name: z.string().min(1, "Name is required"),
 });
 
-const FormSchema = z.object({
-  student_id: z.string().min(1, "Student is required."),
-  mother_name: z.string().optional(),
-  father_name: z.string().optional(),
-  grandmother_name: z.string().optional(),
-  grandfather_name: z.string().optional(),
-  brother_name: z.string().optional(),
-  sister_name: z.string().optional(),
-  others: z.array(OtherFamilyMemberSchema).optional(),
-});
+const FormSchema = z
+  .object({
+    student_id: z.string().min(1, "Student is required."),
+    mother_name: z.string().optional(),
+    father_name: z.string().optional(),
+    grandmother_name: z.string().optional(),
+    grandfather_name: z.string().optional(),
+    brother_name: z.string().optional(),
+    sister_name: z.string().optional(),
+    others: z.array(OtherFamilyMemberSchema).optional(),
+  })
+  .refine(
+    (data) => {
+      return (
+        !!data.mother_name ||
+        !!data.father_name ||
+        !!data.grandmother_name ||
+        !!data.grandfather_name ||
+        !!data.brother_name ||
+        !!data.sister_name ||
+        (data.others && data.others.some((o) => !!o.name))
+      );
+    },
+    {
+      message: "At least one family member must be added.",
+      path: ["student_id"], // Assign error to a field so it can be displayed
+    }
+  );
 
 type FormData = z.infer<typeof FormSchema>;
 
@@ -261,11 +281,11 @@ function RegistrationPageContent() {
                     </Popover>
                   )}
                 />
-              {form.formState.errors.student_id && (
-                <p className="text-sm text-red-600">
-                  {form.formState.errors.student_id.message}
-                </p>
-              )}
+                 {form.formState.errors.student_id && (
+                    <p className="text-sm text-red-600 pt-1">
+                        {form.formState.errors.student_id.message}
+                    </p>
+                )}
             </div>
 
             {selectedStudent && (
@@ -376,3 +396,5 @@ export default function RegistrationPage() {
     </Suspense>
   )
 }
+
+    
