@@ -48,7 +48,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Users, Edit, Trash2, Settings2, UserPlus, UserCheck } from "lucide-react";
+import { ChevronDown, Users, Edit, Trash2, Settings2, UserPlus, UserCheck, UserX } from "lucide-react";
 import SummaryCard from "@/components/SummaryCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -114,10 +114,11 @@ export default function RegistrationsPage() {
     fetchRegistrations();
   }, []);
 
-  const { uniqueClasses, classCounts, totalRegistered, totalUnregistered } = useMemo(() => {
+  const { uniqueClasses, classCounts, totalRegistered, totalUnregistered, totalFamilyMembers } = useMemo(() => {
     const classes = new Set<string>();
     const counts: { [key: string]: number } = {};
     let registered = 0;
+    let familyMembers = 0;
     
     allStudentData.forEach(r => {
         if(r.student_class) {
@@ -128,6 +129,16 @@ export default function RegistrationsPage() {
           if (r.student_class) {
             counts[r.student_class] = (counts[r.student_class] || 0) + 1;
           }
+
+          if (r.mother_name) familyMembers++;
+          if (r.father_name) familyMembers++;
+          if (r.grandmother_name) familyMembers++;
+          if (r.grandfather_name) familyMembers++;
+          if (r.brother_name) familyMembers++;
+          if (r.sister_name) familyMembers++;
+          if (r.others) {
+            familyMembers += r.others.filter(o => o.name && o.relationship).length;
+          }
         }
     });
 
@@ -135,7 +146,8 @@ export default function RegistrationsPage() {
         uniqueClasses: ["all", ...Array.from(classes).sort()],
         classCounts: counts,
         totalRegistered: registered,
-        totalUnregistered: allStudentData.length - registered
+        totalUnregistered: allStudentData.length - registered,
+        totalFamilyMembers: familyMembers,
     };
   }, [allStudentData]);
   
@@ -262,14 +274,15 @@ export default function RegistrationsPage() {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 no-print">
-        <SummaryCard title="Total Students" value={allStudentData.length} />
-        <SummaryCard title="Registered" value={totalRegistered} icon={<UserCheck className="h-4 w-4 text-muted-foreground" />} />
-        <SummaryCard title="Not Registered" value={totalUnregistered} icon={<UserPlus className="h-4 w-4 text-muted-foreground" />} />
+        <SummaryCard title="Total Students" value={allStudentData.length} icon={<Users className="h-4 w-4 text-muted-foreground" />}/>
+        <SummaryCard title="Registered Students" value={totalRegistered} icon={<UserCheck className="h-4 w-4 text-muted-foreground" />} />
+        <SummaryCard title="Unregistered Students" value={totalUnregistered} icon={<UserX className="h-4 w-4 text-muted-foreground" />} />
+        <SummaryCard title="Total Family Members" value={totalFamilyMembers} icon={<Users className="h-4 w-4 text-muted-foreground" />} />
       </div>
 
        <Card className="no-print">
         <CardHeader>
-          <CardTitle className="text-lg">Registrations by Class</CardTitle>
+          <CardTitle className="text-lg">Registered Students by Class</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
@@ -383,111 +396,112 @@ export default function RegistrationsPage() {
           <TableBody>
             {filteredData.length > 0 ? (
               filteredData.map((reg, index) => (
-                <Collapsible asChild key={reg.student_id} className="group">
-                  <React.Fragment>
-                    <TableRow>
-                        <TableCell>{index + 1}</TableCell>
-                        {registrationFilter === 'not-registered' ? (
-                          <>
-                            <TableCell>{reg.student_name}</TableCell>
-                            <TableCell>{reg.student_class}</TableCell>
-                          </>
-                        ) : (
-                          visibleColumnKeys.map((key) => {
-                            let value: React.ReactNode = "-";
-                            if (key === 'others') {
-                              if (reg.others && reg.others.length > 0) {
+                <React.Fragment key={reg.student_id}>
+                  <TableRow className="group">
+                      <TableCell>{index + 1}</TableCell>
+                      {registrationFilter === 'not-registered' ? (
+                        <>
+                          <TableCell>{reg.student_name}</TableCell>
+                          <TableCell>{reg.student_class}</TableCell>
+                        </>
+                      ) : (
+                        visibleColumnKeys.map((key) => {
+                          let value: React.ReactNode = "-";
+                          if (key === 'others') {
+                            if (reg.others && reg.others.length > 0) {
+                                const validOthers = reg.others.filter(o => o.name && o.relationship);
+                                if (validOthers.length > 0) {
                                   value = (
                                     <ul className="list-inside">
-                                      {reg.others.map((o, i) => o.name && o.relationship ? <li key={i}>{`${o.relationship}: ${o.name}`}</li>: null)}
+                                      {validOthers.map((o, i) => <li key={i}>{`${o.relationship}: ${o.name}`}</li>)}
                                     </ul>
                                   );
-                              }
-                            } else if (key in reg) {
-                              const regValue = reg[key as keyof FullFamilyData];
-                              value = (typeof regValue === 'string' || typeof regValue === 'number') ? regValue : null;
+                                }
                             }
-                            return <TableCell key={key}>{value || "-"}</TableCell>;
-                          })
-                        )}
-                        <TableCell className="text-center no-print">
-                          {reg.isRegistered ? (
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Users className="h-4 w-4 mr-2" />
-                                View
-                                <ChevronDown className="h-4 w-4 ml-2 transition-transform group-data-[state=open]:rotate-180" />
-                              </Button>
-                            </CollapsibleTrigger>
-                          ) : (
-                            <Badge variant="outline">Not Registered</Badge>
-                          )}
-                        </TableCell>
-                         <TableCell className="flex items-center justify-center space-x-1 no-print">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(reg.student_id)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {reg.isRegistered && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the family registration record.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDelete(reg.id)}>
-                                    Continue
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                      {reg.isRegistered && (
-                        <CollapsibleContent asChild>
-                            <TableRow className="no-print bg-gray-50 dark:bg-gray-800/50">
-                              <TableCell colSpan={visibleColumnKeys.length + 3}>
-                                  <div className="p-4">
-                                      <h4 className="font-semibold mb-2 text-base">Full Family Details:</h4>
-                                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-                                          <div><strong>Student:</strong> {reg.student_name} ({reg.student_class})</div>
-                                          <div><strong>Father:</strong> {reg.father_name || "-"}</div>
-                                          <div><strong>Mother:</strong> {reg.mother_name || "-"}</div>
-                                          <div><strong>Grandfather:</strong> {reg.grandfather_name || "-"}</div>
-                                          <div><strong>Grandmother:</strong> {reg.grandmother_name || "-"}</div>
-                                          <div><strong>Brother:</strong> {reg.brother_name || "-"}</div>
-                                          <div><strong>Sister:</strong> {reg.sister_name || "-"}</div>
-                                      </div>
-                                      {reg.others && reg.others.length > 0 && reg.others.some(m => m.name) && (
-                                          <div className="mt-4">
-                                              <h5 className="font-semibold mb-1">Other Members:</h5>
-                                              <ul className="list-disc list-inside space-y-1 text-sm">
-                                                  {reg.others.map((member, index) => (
-                                                      member.name && member.relationship ? (
-                                                      <li key={index}>
-                                                          <span className="font-semibold">{member.relationship}:</span> {member.name}
-                                                      </li>
-                                                      ) : null
-                                                  ))}
-                                              </ul>
-                                          </div>
-                                      )}
-                                  </div>
-                              </TableCell>
-                            </TableRow>
-                        </CollapsibleContent>
+                          } else if (key in reg) {
+                            const regValue = reg[key as keyof FullFamilyData];
+                            value = (typeof regValue === 'string' || typeof regValue === 'number') ? regValue : null;
+                          }
+                          return <TableCell key={key}>{value || "-"}</TableCell>;
+                        })
                       )}
-                  </React.Fragment>
-                </Collapsible>
+                      <TableCell className="text-center no-print">
+                        {reg.isRegistered ? (
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Users className="h-4 w-4 mr-2" />
+                              View
+                              <ChevronDown className="h-4 w-4 ml-2 transition-transform group-data-[state=open]:rotate-180" />
+                            </Button>
+                          </CollapsibleTrigger>
+                        ) : (
+                          <Badge variant="outline">Not Registered</Badge>
+                        )}
+                      </TableCell>
+                       <TableCell className="flex items-center justify-center space-x-1 no-print">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(reg.student_id)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {reg.isRegistered && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the family registration record.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(reg.id)}>
+                                  Continue
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {reg.isRegistered && (
+                      <CollapsibleContent asChild>
+                          <TableRow className="no-print bg-gray-50 dark:bg-gray-800/50">
+                            <TableCell colSpan={visibleColumnKeys.length + 3}>
+                                <div className="p-4">
+                                    <h4 className="font-semibold mb-2 text-base">Full Family Details:</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
+                                        <div><strong>Student:</strong> {reg.student_name} ({reg.student_class})</div>
+                                        <div><strong>Father:</strong> {reg.father_name || "-"}</div>
+                                        <div><strong>Mother:</strong> {reg.mother_name || "-"}</div>
+                                        <div><strong>Brother:</strong> {reg.brother_name || "-"}</div>
+                                        <div><strong>Sister:</strong> {reg.sister_name || "-"}</div>
+                                        <div><strong>Grandfather:</strong> {reg.grandfather_name || "-"}</div>
+                                        <div><strong>Grandmother:</strong> {reg.grandmother_name || "-"}</div>
+                                    </div>
+                                    {reg.others && reg.others.length > 0 && reg.others.some(m => m.name) && (
+                                        <div className="mt-4">
+                                            <h5 className="font-semibold mb-1">Other Members:</h5>
+                                            <ul className="list-disc list-inside space-y-1 text-sm">
+                                                {reg.others.map((member, index) => (
+                                                    member.name && member.relationship ? (
+                                                    <li key={index}>
+                                                        <span className="font-semibold">{member.relationship}:</span> {member.name}
+                                                    </li>
+                                                    ) : null
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </TableCell>
+                          </TableRow>
+                      </CollapsibleContent>
+                    )}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>
@@ -502,5 +516,3 @@ export default function RegistrationsPage() {
     </div>
   );
 }
-
-    
