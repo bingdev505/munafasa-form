@@ -12,7 +12,7 @@ import Link from 'next/link';
 
 // Mock data - in a real app, this would come from your database
 const hallTicketData = {
-  downloadUrl: '#', // Placeholder link for the actual hall ticket PDF
+  downloadUrl: 'https://your-google-drive-link-for-hall-ticket', // Placeholder link for the actual hall ticket PDF
 };
 
 export default function HallTicketPage() {
