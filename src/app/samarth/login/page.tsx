@@ -8,13 +8,13 @@ export default function SamarthLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to the main dashboard which now handles both IGNOU and PONDI
-    router.replace('/dashboard');
+    // Redirect to the main login page
+    router.replace('/login');
   }, [router]);
 
   return (
     <div className="flex h-full w-full items-center justify-center">
-      <p>Redirecting to dashboard...</p>
+      <p>Redirecting to login...</p>
     </div>
   );
 }
