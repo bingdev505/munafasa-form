@@ -3,9 +3,9 @@
 import { z } from 'zod';
 import { supabase } from '@/utils/supabaseClient';
 import { v2 as cloudinary } from 'cloudinary';
-import { Writable } from 'stream';
 
-// Configure Cloudinary
+// Configure Cloudinary for any server-side actions if needed in the future
+// Note: For client-side uploads, this config is not used.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -34,53 +34,15 @@ const FormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   correspondence_address: AddressSchema,
   permanent_address: AddressSchema,
-  profile_photo: z.any().optional(),
-  hall_ticket: z.any().optional(),
+  profile_url: z.string().url().optional().or(z.literal('')),
+  hall_ticket_url: z.string().url().optional().or(z.literal('')),
 });
-
-// Helper function to upload a file stream to Cloudinary
-async function uploadToCloudinary(
-  file: File,
-  folder: string
-): Promise<string | null> {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: folder, resource_type: 'auto' },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error);
-          reject(error);
-        } else if (result) {
-          resolve(result.secure_url);
-        } else {
-          resolve(null);
-        }
-      }
-    );
-
-    const fileStream = file.stream();
-    const reader = fileStream.getReader();
-
-    reader.read().then(function processText({ done, value }) {
-      if (done) {
-        stream.end();
-        return;
-      }
-      stream.write(value);
-      return reader.read().then(processText);
-    }).catch(reject);
-  });
-}
 
 
 export async function registerStudent(
   formData: FormData
 ): Promise<{ success: boolean; message: string }> {
-
-  // Extract files first
-  const profilePhotoFile = formData.get('profile_photo') as File | null;
-  const hallTicketFile = formData.get('hall_ticket') as File | null;
-
+  
   // Extract and parse stringified JSON for nested objects
   const correspondenceAddress = JSON.parse(formData.get('correspondence_address') as string);
   const permanentAddress = JSON.parse(formData.get('permanent_address') as string);
@@ -98,8 +60,8 @@ export async function registerStudent(
     password: formData.get('password'),
     correspondence_address: correspondenceAddress,
     permanent_address: permanentAddress,
-    profile_photo: profilePhotoFile,
-    hall_ticket: hallTicketFile,
+    profile_url: formData.get('profile_url') || '',
+    hall_ticket_url: formData.get('hall_ticket_url') || '',
   };
 
 
@@ -125,28 +87,11 @@ export async function registerStudent(
     mobile_number,
     enrolment_number,
     password,
+    profile_url,
+    hall_ticket_url,
   } = parsedData.data;
 
   try {
-    let profileUrl: string | null = null;
-    let hallTicketUrl: string | null = null;
-
-    // Upload profile photo if it exists
-    if (profilePhotoFile && profilePhotoFile.size > 0) {
-      profileUrl = await uploadToCloudinary(profilePhotoFile, 'profile_photos');
-      if (!profileUrl) {
-        throw new Error('Profile photo upload failed.');
-      }
-    }
-
-    // Upload hall ticket if it exists
-    if (hallTicketFile && hallTicketFile.size > 0) {
-      hallTicketUrl = await uploadToCloudinary(hallTicketFile, 'hall_tickets');
-       if (!hallTicketUrl) {
-        throw new Error('Hall ticket upload failed.');
-      }
-    }
-
     // Prepare data for Supabase insertion
     const dbData = {
       student_name,
@@ -158,8 +103,8 @@ export async function registerStudent(
       mobile_number,
       enrolment_number,
       password, // Note: Storing passwords in plain text is not secure for production. Use an auth provider.
-      profile_url: profileUrl,
-      hallticket_url: hallTicketUrl,
+      profile_url: profile_url || null,
+      hallticket_url: hall_ticket_url || null,
       correspondence_address_line1: correspondenceAddress.line1,
       correspondence_address_line2: correspondenceAddress.line2,
       correspondence_address_line3: correspondenceAddress.line3,

@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useDropzone } from 'react-dropzone';
+import { CldUploadWidget, CldImage } from 'next-cloudinary';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UploadCloud, FileText } from 'lucide-react';
+import { Loader2, UploadCloud, FileText, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -49,8 +49,8 @@ const FormSchema = z.object({
   mobile_number: z.string().min(1, 'Mobile number is required'),
   correspondence_address: AddressSchema,
   permanent_address: AddressSchema,
-  profile_photo: z.any().optional(),
-  hall_ticket: z.any().optional(),
+  profile_url: z.string().url().optional().or(z.literal('')),
+  hall_ticket_url: z.string().url().optional().or(z.literal('')),
   enrolment_number: z.string().min(1, "Enrolment number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -65,8 +65,8 @@ export default function NewRegistrationPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [hallTicketFile, setHallTicketFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [hallTicketUrl, setHallTicketUrl] = useState('');
   const [sameAsCorrespondence, setSameAsCorrespondence] = useState(false);
 
   const form = useForm<FormSchemaType>({
@@ -83,37 +83,11 @@ export default function NewRegistrationPage() {
         permanent_address: { line1: '', line2: '', line3: '', district: '', state: '', pincode: '', country: 'India' },
         enrolment_number: '',
         password: '',
+        profile_url: '',
+        hall_ticket_url: '',
     },
   });
 
-  const onPhotoDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      form.setValue('profile_photo', file);
-      setPhotoPreview(URL.createObjectURL(file));
-    }
-  }, [form]);
-
-  const onHallTicketDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      form.setValue('hall_ticket', file);
-      setHallTicketFile(file);
-    }
-  }, [form]);
-
-  const { getRootProps: getPhotoRootProps, getInputProps: getPhotoInputProps, isDragActive: isPhotoDragActive } = useDropzone({
-    onDrop: onPhotoDrop,
-    accept: { 'image/*': ['.jpeg', '.png'] },
-    maxFiles: 1,
-  });
-
-  const { getRootProps: getHallTicketRootProps, getInputProps: getHallTicketInputProps, isDragActive: isHallTicketDragActive } = useDropzone({
-    onDrop: onHallTicketDrop,
-    accept: { 'application/pdf': ['.pdf'] },
-    maxFiles: 1,
-  });
-  
   const correspondenceAddress = form.watch('correspondence_address');
   
   const handleSameAsCorrespondenceChange = (checked: boolean) => {
@@ -130,22 +104,12 @@ export default function NewRegistrationPage() {
     
     const formData = new FormData();
     
-    // Append all string/simple fields
+    // Append all simple fields
     Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'profile_photo' && key !== 'hall_ticket' && key !== 'correspondence_address' && key !== 'permanent_address') {
-        if (value) {
-            formData.append(key, value as string);
-        }
+      if (typeof value === 'string') {
+        formData.append(key, value);
       }
     });
-
-    // Append files if they exist
-    if (data.profile_photo instanceof File) {
-      formData.append('profile_photo', data.profile_photo);
-    }
-    if (data.hall_ticket instanceof File) {
-      formData.append('hall_ticket', data.hall_ticket);
-    }
 
     // Append stringified address objects
     formData.append('correspondence_address', JSON.stringify(data.correspondence_address));
@@ -246,40 +210,64 @@ export default function NewRegistrationPage() {
             <section>
                  <h3 className="text-lg font-semibold border-b pb-2 mb-4">Upload Documents</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Profile Photo Upload */}
                     <div>
                         <Label>Profile Photo (Optional)</Label>
-                        <div {...getPhotoRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
-                            <input {...getPhotoInputProps()} />
-                            {photoPreview ? (
-                                <div className="flex flex-col items-center gap-2">
-                                    <Image src={photoPreview} alt="Profile preview" width={120} height={120} className="h-32 w-32 object-cover rounded-full" onLoad={() => URL.revokeObjectURL(photoPreview)} />
-                                    <p className="text-sm text-muted-foreground">Click or drag to change photo</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                    <UploadCloud className="h-10 w-10" />
-                                    {isPhotoDragActive ? <p>Drop the photo here...</p> : <p>Drag & drop a photo, or click to select</p>}
-                                </div>
-                            )}
-                        </div>
+                        <CldUploadWidget
+                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                            onSuccess={(result) => {
+                                const info = result.info as { secure_url: string };
+                                setPhotoUrl(info.secure_url);
+                                form.setValue('profile_url', info.secure_url);
+                            }}
+                        >
+                        {({ open }) => (
+                            <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary" onClick={() => open()}>
+                                {photoUrl ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Image src={photoUrl} alt="Profile preview" width={120} height={120} className="h-32 w-32 object-cover rounded-full"/>
+                                        <p className="text-sm text-muted-foreground">Click to change photo</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                        <UploadCloud className="h-10 w-10" />
+                                        <p>Drag & drop a photo, or click to select</p>
+                                    </div>
+                                )}
+                             </div>
+                        )}
+                        </CldUploadWidget>
                     </div>
-                     <div>
+
+                    {/* Hall Ticket Upload */}
+                    <div>
                         <Label>Hall Ticket (PDF, Optional)</Label>
-                        <div {...getHallTicketRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
-                            <input {...getHallTicketInputProps()} />
-                            {hallTicketFile ? (
-                                <div className="flex flex-col items-center gap-2">
-                                    <FileText className="h-16 w-16 text-primary" />
-                                    <p className="text-sm font-medium">{hallTicketFile.name}</p>
-                                    <p className="text-sm text-muted-foreground">Click or drag to change PDF</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                    <UploadCloud className="h-10 w-10" />
-                                    {isHallTicketDragActive ? <p>Drop the PDF here...</p> : <p>Drag & drop a PDF, or click to select</p>}
-                                </div>
-                            )}
-                        </div>
+                         <CldUploadWidget
+                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                             onSuccess={(result) => {
+                                const info = result.info as { secure_url: string };
+                                setHallTicketUrl(info.secure_url);
+                                form.setValue('hall_ticket_url', info.secure_url);
+                            }}
+                        >
+                        {({ open }) => (
+                            <div className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary" onClick={() => open()}>
+                                {hallTicketUrl ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <FileText className="h-16 w-16 text-primary" />
+                                        <p className="text-sm font-medium">Hall Ticket Uploaded</p>
+                                        <Link href={hallTicketUrl} target="_blank" className="text-xs text-blue-500 hover:underline">View PDF</Link>
+                                        <p className="text-sm text-muted-foreground mt-2">Click to change PDF</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                        <UploadCloud className="h-10 w-10" />
+                                        <p>Drag & drop a PDF, or click to select</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        </CldUploadWidget>
                     </div>
                  </div>
             </section>
