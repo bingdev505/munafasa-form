@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function SamarthDashboardPage() {
+function SamarthDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
@@ -23,4 +23,12 @@ export default function SamarthDashboardPage() {
       <p>Redirecting to dashboard...</p>
     </div>
   );
+}
+
+export default function SamarthDashboardPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SamarthDashboardContent />
+        </Suspense>
+    )
 }
