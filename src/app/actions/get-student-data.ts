@@ -1,4 +1,3 @@
-
 'use server';
 
 import { supabase } from '@/utils/supabaseClient';
@@ -22,27 +21,28 @@ export async function getStudentData(): Promise<StudentData | null> {
       .select(
         'student_name, course, profile_url, enrolment_number, father_name, address, hallticket_url'
       )
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (error) {
       console.error('Error fetching student data:', error);
       return null;
     }
 
-    if (!data) {
+    const student = data?.[0];
+
+    if (!student) {
       return null;
     }
 
     // Map database columns to our desired object keys
     return {
-      name: data.student_name,
-      course: data.course,
-      profileUrl: data.profile_url,
-      enrolmentNumber: data.enrolment_number,
-      fatherName: data.father_name,
-      address: data.address,
-      hallTicketUrl: data.hallticket_url,
+      name: student.student_name,
+      course: student.course,
+      profileUrl: student.profile_url,
+      enrolmentNumber: student.enrolment_number,
+      fatherName: student.father_name,
+      address: student.address,
+      hallTicketUrl: student.hallticket_url,
     };
   } catch (e) {
     console.error('Unexpected error fetching student data:', e);
