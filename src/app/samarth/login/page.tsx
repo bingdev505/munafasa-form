@@ -29,7 +29,7 @@ export default function LoginPage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
           <Image
-            src="/logo.png"
+            src="/samarth-logo.png"
             alt="University Logo"
             width={200}
             height={60}

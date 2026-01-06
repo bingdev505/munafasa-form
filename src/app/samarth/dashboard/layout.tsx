@@ -21,7 +21,7 @@ export default async function DashboardLayout({
         <div className="flex items-center border-b px-6 py-8">
            <Link href="/samarth/dashboard">
             <Image 
-                src="/logo.png" 
+                src="/samarth-logo.png" 
                 alt="University Logo" 
                 width={140} 
                 height={40}
@@ -62,7 +62,7 @@ export default async function DashboardLayout({
         <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800 sm:justify-end">
            <div className="sm:hidden">
              <Link href="/samarth/dashboard">
-                <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
+                <Image src="/samarth-logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
             </Link>
           </div>
           <div className="flex items-center gap-4">
