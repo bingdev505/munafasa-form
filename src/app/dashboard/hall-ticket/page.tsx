@@ -93,4 +93,3 @@ export default async function HallTicketPage({ searchParams }: HallTicketPagePro
     </div>
   );
 }
-
