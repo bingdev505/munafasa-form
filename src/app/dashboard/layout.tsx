@@ -24,7 +24,6 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const studentLinks = [
     { href: `/dashboard?enrolment_number=${enrolmentNumber}`, label: 'Dashboard' },
     { href: `/dashboard/profile?enrolment_number=${enrolmentNumber}`, label: 'Profile' },
-    { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, label: 'Hall Ticket' },
     { href: '#', label: 'Fee' },
     { href: '#', label: 'Course(s) Selection' },
     { href: '#', label: 'Upload Section' },
