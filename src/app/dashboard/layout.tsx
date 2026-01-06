@@ -4,7 +4,7 @@
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Bell, Home, Ticket, User, LogOut, ChevronDown, Briefcase, GraduationCap, Menu } from 'lucide-react';
+import { Bell, Home, Ticket, User, LogOut, ChevronDown, Briefcase, GraduationCap, Menu as MenuIcon } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -47,7 +47,7 @@ function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
   ];
 
   return (
-    <nav className="flex flex-col space-y-2 p-2">
+    <nav className={cn("flex flex-col space-y-2 p-2", isMobile ? "w-full" : "")}>
       {/* Student Collapsible */}
       <Collapsible open={openSection === 'student'} onOpenChange={() => handleSectionToggle('student')}>
         <CollapsibleTrigger asChild>
@@ -147,6 +147,7 @@ function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
 function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -160,25 +161,12 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
       </aside>
        <div className="flex flex-1 flex-col sm:pl-64">
         <header className="flex h-16 items-center justify-between border-b bg-white px-4 sm:px-6">
-           
            <div className="flex items-center gap-4">
-            <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="sm:hidden">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="sm:max-w-xs p-0">
-                   <div className="p-4 border-b">
-                      <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-                        <Image src="/logo.png" alt="University Logo" width={150} height={40} data-ai-hint="university logo"/>
-                      </Link>
-                   </div>
-                  <NavigationMenu isMobile={true} />
-                </SheetContent>
-            </Sheet>
-
+             <div className="sm:hidden">
+              <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
+                <Image src="/logo.png" alt="University Logo" width={120} height={32} data-ai-hint="university logo"/>
+              </Link>
+             </div>
              <div className="text-sm text-muted-foreground hidden md:block">
               <Link href="#" className="text-primary hover:underline">
                 Home
@@ -204,6 +192,23 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
             </Button>
             </div>
         </header>
+
+        {/* Mobile Menu */}
+        <div className="sm:hidden border-b">
+           <Collapsible open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between px-4 py-3 text-base font-semibold">
+                  Menu
+                  <ChevronDown className={cn("h-5 w-5 transition-transform", isMobileMenuOpen && "rotate-180")} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <NavigationMenu isMobile={true} />
+              </CollapsibleContent>
+           </Collapsible>
+        </div>
+
+
         <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-100">
             {children}
              <footer className="text-center mt-8 text-sm text-muted-foreground">
@@ -226,5 +231,3 @@ export default function DashboardLayout({
     </Suspense>
   );
 }
-
-    
