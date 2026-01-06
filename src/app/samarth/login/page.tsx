@@ -60,7 +60,7 @@ export default function SamarthLoginPage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
           <Image
-            src="/samarth-login.png"
+            src="/samarth-logo.png"
             alt="Samarth University Logo"
             width={200}
             height={60}
