@@ -22,7 +22,7 @@ export async function getStudentData(enrolmentNumber: string): Promise<StudentDa
       .select(
         'student_name, course, profile_url, hallticket_url, address'
       )
-      .eq('enrolment_number', enrolmentNumber)
+      .eq('enrolment_number' as any, enrolmentNumber)
       .single();
 
     if (error) {
