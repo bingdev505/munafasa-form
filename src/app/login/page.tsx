@@ -36,10 +36,7 @@ export default function LoginPage() {
         if (studentData) {
             // NOTE: We are not checking password, as per original logic.
             // In a real app, you would validate the password here.
-            const destination = studentData.university === 'PONDI' 
-                ? `/samarth/dashboard?enrolment_number=${enrolmentNumber}`
-                : `/dashboard?enrolment_number=${enrolmentNumber}`;
-            
+            const destination = `/dashboard?enrolment_number=${enrolmentNumber}`;
             router.push(destination);
         } else {
             toast({

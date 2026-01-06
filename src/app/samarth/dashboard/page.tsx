@@ -1,33 +1,26 @@
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import Link from 'next/link';
+"use client";
 
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function DashboardPage() {
+export default function SamarthDashboardPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const enrolmentNumber = searchParams.get('enrolment_number');
+
+  useEffect(() => {
+    // Redirect to the main dashboard
+    if (enrolmentNumber) {
+      router.replace(`/dashboard?enrolment_number=${enrolmentNumber}`);
+    } else {
+      router.replace('/login');
+    }
+  }, [router, enrolmentNumber]);
+
   return (
-    <div className="grid gap-6">
-      <Alert className="bg-primary text-primary-foreground border-primary rounded-none">
-          <AlertTitle className="font-bold text-lg">Announcement:</AlertTitle>
-          <AlertDescription>
-            <Link href="#" className="underline hover:text-primary-foreground/80">
-              Create/Link Your Academic Bank of Credits (ABC) Account
-            </Link>
-          </AlertDescription>
-      </Alert>
-
-      <Card className="rounded-none">
-        <CardContent className="p-6">
-            <h3 className="text-lg font-semibold">ODL36914 : MASTER OF BUSINESS ADMINISTRATION (FINANCE)</h3>
-            <Button variant="outline" className="mt-4 rounded-none">
-                CLICK HERE
-            </Button>
-        </CardContent>
-      </Card>
+    <div className="flex h-full w-full items-center justify-center">
+      <p>Redirecting to dashboard...</p>
     </div>
   );
 }
