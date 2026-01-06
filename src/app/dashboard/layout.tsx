@@ -1,67 +1,163 @@
 
 "use client";
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
+import { Bell, Home, Ticket, User, LogOut, ChevronDown, Briefcase, GraduationCap } from 'lucide-react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 function DashboardNavContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
 
-  const navLinks = [
-    { href: `/dashboard?enrolment_number=${enrolmentNumber}`, icon: Home, label: 'Dashboard' },
-    { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, icon: Ticket, label: 'Hall Ticket' },
-    { href: `/dashboard/profile?enrolment_number=${enrolmentNumber}`, icon: User, label: 'Profile' },
+  const [isStudentOpen, setStudentOpen] = useState(true);
+  const [isExamOpen, setExamOpen] = useState(false);
+  const [isTrainingOpen, setTrainingOpen] = useState(false);
+
+  const studentLinks = [
+    { href: `/dashboard?enrolment_number=${enrolmentNumber}`, label: 'Dashboard' },
+    { href: `/dashboard/profile?enrolment_number=${enrolmentNumber}`, label: 'Profile' },
+    { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, label: 'Hall Ticket' },
+    { href: '#', label: 'Fee' },
+    { href: '#', label: 'Course(s) Selection' },
+    { href: '#', label: 'Upload Section' },
   ];
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-gray-100 dark:bg-gray-900">
-      <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800">
-        <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-          <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-          </Button>
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-            <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
-          </div>
-           <Button asChild variant="ghost" size="sm">
-                <Link href="/login">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                </Link>
-            </Button>
-        </div>
-      </header>
-      
-      <main className="flex flex-1">
-        <div className="container mx-auto max-w-7xl py-8">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-                <aside className="md:col-span-1">
-                    <nav className="flex flex-col space-y-2">
-                        {navLinks.map((link) => (
-                        <Button asChild variant="ghost" className="w-full justify-start rounded-none" key={link.href} disabled={!enrolmentNumber}>
-                        <Link href={enrolmentNumber ? link.href : '#'}>
-                            <link.icon className="mr-2 h-4 w-4" />
-                            {link.label}
-                        </Link>
-                        </Button>
-                    ))}
-                    </nav>
-                </aside>
-                 <div className="md:col-span-3">
-                    {children}
+    <div className="flex min-h-screen w-full bg-background">
+       <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white sm:flex">
+         <div className="p-4 border-b">
+            <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
+              <Image src="/logo.png" alt="University Logo" width={150} height={40} data-ai-hint="university logo"/>
+            </Link>
+         </div>
+        <nav className="flex-1 space-y-2 p-2">
+          {/* Student Collapsible */}
+          <Collapsible open={isStudentOpen} onOpenChange={setStudentOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between text-base font-semibold px-4"
+              >
+                <div className="flex items-center">
+                  <User className="mr-3 h-5 w-5" />
+                  Student
                 </div>
+                <ChevronDown
+                  className={cn(
+                    'h-5 w-5 transition-transform',
+                    isStudentOpen && 'rotate-180'
+                  )}
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1 pl-4">
+              {studentLinks.map((link) => (
+                <Button
+                  asChild
+                  key={link.href}
+                  variant={pathname === link.href ? 'secondary' : 'ghost'}
+                  className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
+                  disabled={!enrolmentNumber && link.href.includes('enrolment_number')}
+                >
+                  <Link href={enrolmentNumber ? link.href : '#'}>{link.label}</Link>
+                </Button>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Examination Collapsible */}
+          <Collapsible open={isExamOpen} onOpenChange={setExamOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between text-base font-semibold px-4"
+              >
+                <div className="flex items-center">
+                  <GraduationCap className="mr-3 h-5 w-5" />
+                  Examination
+                </div>
+                <ChevronDown
+                  className={cn(
+                    'h-5 w-5 transition-transform',
+                    isExamOpen && 'rotate-180'
+                  )}
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4">
+              {/* Add Examination links here */}
+            </CollapsibleContent>
+          </Collapsible>
+          
+          {/* Training & Placement Collapsible */}
+          <Collapsible open={isTrainingOpen} onOpenChange={setTrainingOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between text-base font-semibold px-4"
+              >
+                <div className="flex items-center">
+                  <Briefcase className="mr-3 h-5 w-5" />
+                  Training & Placement
+                </div>
+                <ChevronDown
+                  className={cn(
+                    'h-5 w-5 transition-transform',
+                    isTrainingOpen && 'rotate-180'
+                  )}
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4">
+              {/* Add Training links here */}
+            </CollapsibleContent>
+          </Collapsible>
+
+        </nav>
+      </aside>
+       <div className="flex flex-1 flex-col sm:pl-64">
+        <header className="flex h-16 items-center justify-between border-b bg-white px-6">
+           <div className="text-sm text-muted-foreground">
+            <Link href="#" className="text-primary hover:underline">
+              Home
+            </Link>
+            <span className="mx-2">/</span>
+            <span>Dashboard</span>
+          </div>
+
+           <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="rounded-full">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+            </Button>
+            <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
             </div>
-        </div>
-      </main>
+            <Button asChild variant="ghost" size="sm">
+                    <Link href="/login">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                    </Link>
+                </Button>
+            </div>
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-100">
+            {children}
+             <footer className="text-center mt-8 text-sm text-muted-foreground">
+                © DDE Pondicherry University
+            </footer>
+        </main>
+      </div>
     </div>
   )
 }
