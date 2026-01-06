@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Bell, Home, Ticket, User, LogOut, ChevronDown, Briefcase, GraduationCap, Menu as MenuIcon } from 'lucide-react';
@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
+import { getStudentData, type StudentData } from '@/app/actions/get-student-data';
+
 
 function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
@@ -149,6 +151,19 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
+
+  useEffect(() => {
+    async function fetchStudentData() {
+      if (enrolmentNumber) {
+        const data = await getStudentData(enrolmentNumber);
+        setStudentData(data);
+      }
+    }
+    fetchStudentData();
+  }, [enrolmentNumber]);
+
+  const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
   
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -185,7 +200,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                   <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-2 cursor-pointer">
                         <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-                            <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
+                            <Image src={profileImageUrl} alt="Student Profile" width={32} height={32} data-ai-hint="profile person" className="object-cover h-full w-full" />
                         </div>
                         {enrolmentNumber && <span className="text-sm font-medium text-primary hidden sm:inline">{enrolmentNumber}</span>}
                     </div>
