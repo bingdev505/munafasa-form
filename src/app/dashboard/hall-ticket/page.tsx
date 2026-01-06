@@ -7,10 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Download } from 'lucide-react';
-import Link from 'next/link';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "@/components/ui/table";
 import { getStudentData } from '@/app/actions/get-student-data';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
 interface HallTicketPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -25,7 +32,7 @@ export default async function HallTicketPage({ searchParams }: HallTicketPagePro
 
     const studentData = await getStudentData(enrolmentNumber);
 
-    if (!studentData || !studentData.hallTicketUrl) {
+    if (!studentData) {
         return (
              <div className="grid gap-6">
               <Card className="shadow-md rounded-none">
@@ -44,30 +51,46 @@ export default async function HallTicketPage({ searchParams }: HallTicketPagePro
 
   return (
     <div className="grid gap-6">
-      <Card className="shadow-md rounded-none">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Exam Hall Ticket
-          </CardTitle>
-          <CardDescription className="text-md text-gray-600">
-            Your hall ticket is ready. Please download it and bring a printed copy to the examination center.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center p-10 text-center bg-gray-50/50">
-            <div className="mb-6">
-                <Download className="h-16 w-16 text-blue-500" />
-            </div>
-            <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto rounded-none">
-              <Link href={studentData.hallTicketUrl} target="_blank" rel="noopener noreferrer">
-                <Download className="mr-2 h-4 w-4" />
-                Download Now
-              </Link>
-            </Button>
-            <p className="text-xs text-gray-500 mt-4">
-                If you face any issues, please contact the administration office.
-            </p>
-        </CardContent>
-      </Card>
+        <Card className="shadow-md rounded-none">
+            <CardHeader>
+                <CardTitle className="text-lg font-semibold">Examination Hall Admit Card</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>S.No</TableHead>
+                        <TableHead>Reference Number</TableHead>
+                        <TableHead>Programme</TableHead>
+                        <TableHead>Examination Session / Type</TableHead>
+                        <TableHead>Enrolment Number</TableHead>
+                        <TableHead>Term</TableHead>
+                        <TableHead>Application Status</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    <TableRow>
+                        <TableCell>1</TableCell>
+                        <TableCell>97240</TableCell>
+                        <TableCell>{studentData.course || 'ODL36914: MASTER OF BUSINESS ADMINISTRATION (FINANCE)'}</TableCell>
+                        <TableCell>DECEMBER 2025 - SEMESTER</TableCell>
+                        <TableCell>{enrolmentNumber}</TableCell>
+                        <TableCell>4 SEMESTER</TableCell>
+                        <TableCell>VERIFIED</TableCell>
+                        <TableCell className="text-center">
+                            <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 rounded-none" disabled={!studentData.hallTicketUrl}>
+                                <Link href={studentData.hallTicketUrl || '#'} target="_blank" rel="noopener noreferrer">View</Link>
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                    </TableBody>
+                </Table>
+                </div>
+            </CardContent>
+        </Card>
     </div>
   );
 }
+
