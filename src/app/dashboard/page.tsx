@@ -38,8 +38,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <Card className="rounded-none">
         <CardContent className="p-6">
             <h3 className="text-lg font-semibold">{courseName}</h3>
-            <Button variant="outline" className="mt-4 rounded-none">
-                CLICK HERE
+            <Button asChild variant="outline" className="mt-4 rounded-none">
+                <Link href={`/dashboard/profile?enrolment_number=${enrolmentNumber}`}>CLICK HERE</Link>
             </Button>
         </CardContent>
       </Card>
