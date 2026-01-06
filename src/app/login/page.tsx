@@ -20,7 +20,7 @@ export default function LoginPage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center">
           <Image
-            src="https://placehold.co/200x60?text=University+Logo"
+            src="/logo.png"
             alt="University Logo"
             width={200}
             height={60}
