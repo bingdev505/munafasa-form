@@ -2,15 +2,6 @@
 
 import { z } from 'zod';
 import { supabase } from '@/utils/supabaseClient';
-import { v2 as cloudinary } from 'cloudinary';
-
-// Configure Cloudinary for any server-side actions if needed in the future
-// Note: For client-side uploads, this config is not used.
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const AddressSchema = z.object({
   line1: z.string().min(1, 'Address Line 1 is required'),
@@ -38,16 +29,18 @@ const FormSchema = z.object({
   hall_ticket_url: z.string().url().optional().or(z.literal('')),
 });
 
-
 export async function registerStudent(
   formData: FormData
 ): Promise<{ success: boolean; message: string }> {
-  
   // Extract and parse stringified JSON for nested objects
-  const correspondenceAddress = JSON.parse(formData.get('correspondence_address') as string);
-  const permanentAddress = JSON.parse(formData.get('permanent_address') as string);
-  
-  // Construct the data object for validation
+  const correspondenceAddress = JSON.parse(
+    formData.get('correspondence_address') as string
+  );
+  const permanentAddress = JSON.parse(
+    formData.get('permanent_address') as string
+  );
+
+  // Construct the data object for validation from FormData
   const dataToValidate = {
     student_name: formData.get('student_name'),
     course: formData.get('course'),
@@ -64,16 +57,17 @@ export async function registerStudent(
     hall_ticket_url: formData.get('hall_ticket_url') || '',
   };
 
-
   const parsedData = FormSchema.safeParse(dataToValidate);
-  
+
   if (!parsedData.success) {
     console.error('Validation Error:', parsedData.error.flatten());
     return {
       success: false,
       message:
         'Invalid form data. ' +
-        Object.values(parsedData.error.flatten().fieldErrors).flat().join(', '),
+        Object.values(parsedData.error.flatten().fieldErrors)
+          .flat()
+          .join(', '),
     };
   }
 
@@ -127,15 +121,24 @@ export async function registerStudent(
       console.error('Supabase insert error:', error);
       // Check for unique constraint violation
       if (error.code === '23505') {
-           return { success: false, message: `Registration failed: An account with this enrolment number or email already exists.` };
+        return {
+          success: false,
+          message: `Registration failed: An account with this enrolment number or email already exists.`,
+        };
       }
-      return { success: false, message: `Registration failed: ${error.message}` };
+      return {
+        success: false,
+        message: `Registration failed: ${error.message}`,
+      };
     }
 
     return { success: true, message: 'Registration successful!' };
   } catch (error) {
     console.error('Unexpected error in registerStudent:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, message: `An unexpected error occurred: ${errorMessage}` };
+    return {
+      success: false,
+      message: `An unexpected error occurred: ${errorMessage}`,
+    };
   }
 }

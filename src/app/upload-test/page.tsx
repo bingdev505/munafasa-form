@@ -29,7 +29,7 @@ export default function UploadTestPage() {
           </CardDescription>
            {!uploadPreset && (
             <CardDescription className="text-red-500 font-semibold pt-2">
-                Warning: `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` is not set in your .env file. Please set it to your unsigned upload preset from Cloudinary.
+                Warning: `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` is not set in your .env file. Please set it to your unsigned upload preset from Cloudinary for uploads to work.
             </CardDescription>
            )}
         </CardHeader>
