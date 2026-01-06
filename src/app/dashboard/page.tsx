@@ -25,16 +25,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const studentData = await getStudentData(enrolmentNumber);
-  const studentName = studentData?.name || 'Student';
   const courseName = studentData?.course || 'Your Course';
 
 
   return (
     <div className="grid gap-6">
       <Alert className="bg-primary text-primary-foreground border-primary rounded-none">
-          <AlertTitle className="font-bold text-lg">Welcome, {studentName}!</AlertTitle>
+          <AlertTitle className="font-bold text-lg">Announcement:</AlertTitle>
           <AlertDescription>
-            Here is your student dashboard. You can find all your information and quick actions here.
+            <Link href="#" className="underline hover:text-primary-foreground/80">
+              Create/Link Your Academic Bank of Credits (ABC) Account
+            </Link>
           </AlertDescription>
       </Alert>
 
