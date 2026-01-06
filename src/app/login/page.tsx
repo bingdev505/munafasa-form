@@ -61,14 +61,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
-          <Image
-            src="/logo.png"
-            alt="University Logo"
-            width={200}
-            height={60}
-            data-ai-hint="university logo"
-            className="mb-2"
-          />
+          <span className="font-bold tracking-wide text-primary text-4xl mb-2">IGNOU</span>
           <p className="font-semibold text-lg">Student Portal</p>
         </CardHeader>
         <CardContent className="px-8 pb-8">

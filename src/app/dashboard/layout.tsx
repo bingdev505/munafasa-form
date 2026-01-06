@@ -167,11 +167,12 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const university = studentData?.university;
   
   const renderLogo = (isMobile: boolean) => {
+    const className = cn("font-bold tracking-wide text-primary", isMobile ? "text-2xl" : "text-3xl");
     if (university === 'PONDI') {
-      return <span className={cn("font-bold tracking-wide text-primary", isMobile ? "text-2xl" : "text-3xl")}>PUDDE</span>;
+      return <span className={className}>PUDDE</span>;
     }
-    // Default to IGNOU logo
-    return <Image src="/logo.png" alt="IGNOU Logo" width={isMobile ? 120 : 150} height={isMobile ? 32: 40} data-ai-hint="university logo"/>;
+    // Default to IGNOU
+    return <span className={className}>IGNOU</span>;
   }
 
   const footerText = university === 'PONDI' ? '© DDE, Pondicherry University' : '© DDE IGNOU University';
