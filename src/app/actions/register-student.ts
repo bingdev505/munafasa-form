@@ -37,6 +37,14 @@ const RegistrationSchema = z.object({
   enrolment_number: z.string().min(1, 'Enrolment number is required'),
 });
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
+  },
+};
+
 export async function registerStudent(formData: FormData) {
   const data = Object.fromEntries(formData);
   
