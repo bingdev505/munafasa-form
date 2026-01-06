@@ -8,13 +8,10 @@ import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 
-function DashboardNav() {
+function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
-  const profileImageUrl =  "https://picsum.photos/seed/1/32/32"; // Placeholder, real image is fetched in profile page now
 
-  // If there's no enrolment number, we probably don't want to show the nav, or we show a limited version.
-  // For now, we'll just make the links inactive.
   const navLinks = [
     { href: `/dashboard?enrolment_number=${enrolmentNumber}`, icon: Home, label: 'Dashboard' },
     { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, icon: Ticket, label: 'Hall Ticket' },
@@ -22,62 +19,52 @@ function DashboardNav() {
   ];
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
-      <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white dark:bg-gray-800 sm:flex">
-        <div className="flex items-center border-b px-6 py-8">
-           <Link href="/dashboard">
-            <Image 
-                src="/logo.png" 
-                alt="University Logo" 
-                width={140} 
-                height={40}
-                data-ai-hint="university logo" 
-            />
-          </Link>
-        </div>
-        <nav className="flex-1 space-y-2 p-4">
-          {navLinks.map((link) => (
-             <Button asChild variant="ghost" className="w-full justify-start rounded-none" key={link.href} disabled={!enrolmentNumber}>
-              <Link href={enrolmentNumber ? link.href : '#'}>
-                <link.icon className="mr-2 h-4 w-4" />
-                {link.label}
-              </Link>
-            </Button>
-          ))}
-        </nav>
-        <div className="mt-auto p-4">
-            <Button asChild variant="ghost" className="w-full justify-start rounded-none">
+    <div className="flex min-h-screen w-full flex-col bg-gray-100 dark:bg-gray-900">
+      <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800">
+        <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
+          <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
+        </Link>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Bell className="h-5 w-5" />
+            <span className="sr-only">Notifications</span>
+          </Button>
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+            <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
+          </div>
+           <Button asChild variant="ghost" size="sm">
                 <Link href="/login">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                 </Link>
             </Button>
         </div>
-      </aside>
-      <div className="flex flex-1 flex-col sm:pl-64">
-        <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800 sm:justify-end">
-           <div className="sm:hidden">
-             <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-                <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
-            </Button>
-             {/* This will be static now, profile image shown on profile page */}
-            <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-200">
-                <Image src={profileImageUrl} alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
+      </header>
+      
+      <main className="flex flex-1">
+        <div className="container mx-auto max-w-7xl py-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+                <aside className="md:col-span-1">
+                    <nav className="flex flex-col space-y-2">
+                        {navLinks.map((link) => (
+                        <Button asChild variant="ghost" className="w-full justify-start rounded-none" key={link.href} disabled={!enrolmentNumber}>
+                        <Link href={enrolmentNumber ? link.href : '#'}>
+                            <link.icon className="mr-2 h-4 w-4" />
+                            {link.label}
+                        </Link>
+                        </Button>
+                    ))}
+                    </nav>
+                </aside>
+                 <div className="md:col-span-3">
+                    {children}
+                </div>
             </div>
-          </div>
-        </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{/* Children passed here will be the page components */}</main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }
-
 
 export default function DashboardLayout({
   children,
@@ -86,10 +73,7 @@ export default function DashboardLayout({
 }) {
   return (
     <Suspense fallback={<div>Loading Navigation...</div>}>
-      <DashboardNav />
-      <div className="sm:pl-64">
-        {children}
-      </div>
+      <DashboardNavContent>{children}</DashboardNavContent>
     </Suspense>
   );
 }

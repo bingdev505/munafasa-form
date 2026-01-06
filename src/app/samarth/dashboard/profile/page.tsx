@@ -11,7 +11,8 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 export default async function ProfilePage() {
-  const studentData = await getStudentData();
+  const enrolmentNumber = "2107106328"; // Using a dummy enrolment number for now
+  const studentData = await getStudentData(enrolmentNumber);
 
   if (!studentData) {
     return notFound();
@@ -47,9 +48,13 @@ export default async function ProfilePage() {
                     <p className="font-semibold text-gray-500">Student Name</p>
                     <p className="text-gray-800">{studentData.name || 'N/A'}</p>
                 </div>
+                 <div>
+                    <p className="font-semibold text-gray-500">Enrolment Number</p>
+                    <p className="text-gray-800">{enrolmentNumber}</p>
+                </div>
                 <div>
                     <p className="font-semibold text-gray-500">Course</p>
-                    <p className="text-gray-800">{studentData.course || 'N/A'}</p>
+                    <p className="text-gray-800">{studentData.course || 'NA'}</p>
                 </div>
                  <div className="md:col-span-2">
                     <p className="font-semibold text-gray-500">Address</p>
