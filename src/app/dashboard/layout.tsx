@@ -186,7 +186,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const university = studentData?.university;
   
   const renderLogo = (isMobile: boolean) => {
-    const className = cn("font-bold tracking-wide text-primary", isMobile ? "text-2xl" : "text-3xl");
+    const className = cn("tracking-wide text-primary", isMobile ? "text-2xl" : "text-3xl");
     if (university === 'PONDI') {
       return <span className={className}>PUDDE</span>;
     }
