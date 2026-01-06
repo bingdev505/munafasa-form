@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -159,7 +160,7 @@ export default function NewRegistrationPage() {
         description: 'Your account has been created. Redirecting to login...',
       });
       if (data.university === 'PONDI') {
-        router.push('/samarth/login');
+        router.push('/pudde/login');
       } else {
         router.push(`/login`);
       }
