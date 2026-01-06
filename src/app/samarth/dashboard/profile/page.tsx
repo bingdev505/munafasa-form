@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function SamarthProfilePage() {
+function SamarthProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
@@ -23,4 +23,12 @@ export default function SamarthProfilePage() {
       <p>Redirecting to profile...</p>
     </div>
   );
+}
+
+export default function SamarthProfilePage() {
+    return (
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><p>Loading...</p></div>}>
+            <SamarthProfileContent />
+        </Suspense>
+    )
 }
