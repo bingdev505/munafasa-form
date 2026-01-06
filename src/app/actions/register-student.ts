@@ -100,7 +100,7 @@ export async function registerStudent(
       success: false,
       message:
         'Invalid form data. ' +
-        parsedData.error.flatten().fieldErrors,
+        Object.values(parsedData.error.flatten().fieldErrors).join(', '),
     };
   }
 

@@ -133,7 +133,9 @@ export default function NewRegistrationPage() {
     // Append all string/simple fields
     Object.entries(data).forEach(([key, value]) => {
       if (key !== 'profile_photo' && key !== 'hall_ticket' && key !== 'correspondence_address' && key !== 'permanent_address') {
-        formData.append(key, value);
+        if (value) {
+            formData.append(key, value as string);
+        }
       }
     });
 
@@ -245,7 +247,7 @@ export default function NewRegistrationPage() {
                  <h3 className="text-lg font-semibold border-b pb-2 mb-4">Upload Documents</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <Label>Profile Photo</Label>
+                        <Label>Profile Photo (Optional)</Label>
                         <div {...getPhotoRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
                             <input {...getPhotoInputProps()} />
                             {photoPreview ? (
@@ -262,7 +264,7 @@ export default function NewRegistrationPage() {
                         </div>
                     </div>
                      <div>
-                        <Label>Hall Ticket (PDF)</Label>
+                        <Label>Hall Ticket (PDF, Optional)</Label>
                         <div {...getHallTicketRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
                             <input {...getHallTicketInputProps()} />
                             {hallTicketFile ? (
