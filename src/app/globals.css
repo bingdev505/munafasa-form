@@ -77,7 +77,7 @@
 
 @layer base {
   html {
-    @apply text-[80%];
+    @apply text-[90%];
   }
   * {
     @apply border-border;

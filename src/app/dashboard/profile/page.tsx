@@ -59,7 +59,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     <div className="grid gap-6">
         {/* Top Card for Profile Header */}
         <Card className="shadow-md rounded-none">
-            <CardContent className="p-4 flex items-center justify-between">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                      <div className="relative h-20 w-20 overflow-hidden">
                         <Image
@@ -73,15 +73,15 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                     </div>
                     <h2 className="text-xl font-bold text-gray-800">{studentData.name || 'N/A'}</h2>
                 </div>
-                <div className="space-y-2 text-sm text-right">
+                <div className="space-y-2 text-sm text-center sm:text-right">
                     {studentData.phone && (
-                        <div className="flex items-center gap-2 justify-end">
+                        <div className="flex items-center gap-2 justify-center sm:justify-end">
                             <Phone className="h-5 w-5 text-blue-500" />
                             <span>{studentData.phone}</span>
                         </div>
                     )}
                     {studentData.email && (
-                        <div className="flex items-center gap-2 justify-end">
+                        <div className="flex items-center gap-2 justify-center sm:justify-end">
                             <Mail className="h-5 w-5 text-blue-500" />
                             <span>{studentData.email}</span>
                         </div>
@@ -99,11 +99,11 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 <Card className="rounded-none border-2">
                     <CardContent className="p-4">
                         <h3 className="font-semibold text-md">{studentData.course || 'N/A'}</h3>
-                        <div className="flex items-center justify-between mt-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-4">
                             <p className="text-sm text-muted-foreground">
                                 ENROLMENT NUMBER: {enrolmentNumber}
                             </p>
-                            <Button variant="outline" size="sm" className="rounded-none">
+                            <Button variant="outline" size="sm" className="rounded-none w-full sm:w-auto">
                                 CLICK HERE
                             </Button>
                         </div>
