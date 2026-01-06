@@ -27,6 +27,7 @@ import { Loader2, UploadCloud, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { registerStudent } from '@/app/actions/register-student';
 
 const AddressSchema = z.object({
     line1: z.string().min(1, 'Address Line 1 is required'),
@@ -126,11 +127,44 @@ export default function NewRegistrationPage() {
 
   async function onSubmit(data: FormSchemaType) {
     setIsSubmitting(true);
-    toast({
-        variant: 'destructive',
-        title: 'Functionality Removed',
-        description: 'The registration action is currently disabled due to an error. I will fix this in the next step.',
+    
+    const formData = new FormData();
+    
+    // Append all string/simple fields
+    Object.entries(data).forEach(([key, value]) => {
+      if (key !== 'profile_photo' && key !== 'hall_ticket' && key !== 'correspondence_address' && key !== 'permanent_address') {
+        formData.append(key, value);
+      }
     });
+
+    // Append files if they exist
+    if (data.profile_photo instanceof File) {
+      formData.append('profile_photo', data.profile_photo);
+    }
+    if (data.hall_ticket instanceof File) {
+      formData.append('hall_ticket', data.hall_ticket);
+    }
+
+    // Append stringified address objects
+    formData.append('correspondence_address', JSON.stringify(data.correspondence_address));
+    formData.append('permanent_address', JSON.stringify(data.permanent_address));
+
+    const result = await registerStudent(formData);
+
+    if (result.success) {
+      toast({
+        title: 'Registration Successful',
+        description: 'Your account has been created. Redirecting to login...',
+      });
+      router.push(`/login?enrolment_number=${data.enrolment_number}`);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: result.message,
+      });
+    }
+
     setIsSubmitting(false);
   }
 
@@ -359,5 +393,3 @@ export default function NewRegistrationPage() {
     </main>
   );
 }
-
-    
