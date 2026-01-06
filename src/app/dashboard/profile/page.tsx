@@ -1,4 +1,6 @@
 
+'use client';
+
 import {
   Card,
   CardContent,
@@ -6,15 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getStudentData } from '@/app/actions/get-student-data';
+import { getStudentData, StudentData } from '@/app/actions/get-student-data';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { useSearchParams, notFound } from 'next/navigation';
 import { Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface ProfilePageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+import { useEffect, useState } from 'react';
 
 const DetailRow = ({ label, value }: { label: string, value: string | null | undefined }) => {
     if (!value) return null;
@@ -27,15 +26,34 @@ const DetailRow = ({ label, value }: { label: string, value: string | null | und
 };
 
 
-export default async function ProfilePage({ searchParams }: ProfilePageProps) {
-  const enrolmentNumber = searchParams.enrolment_number as string;
+export default function ProfilePage() {
+  const searchParams = useSearchParams();
+  const enrolmentNumber = searchParams.get('enrolment_number');
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    async function fetchStudentData() {
+        if (enrolmentNumber) {
+            setIsLoading(true);
+            const data = await getStudentData(enrolmentNumber);
+            setStudentData(data);
+            setIsLoading(false);
+        } else {
+            setIsLoading(false);
+        }
+    }
+    fetchStudentData();
+  }, [enrolmentNumber]);
+
+  if (isLoading) {
+    return <div className="flex h-screen w-full items-center justify-center">Loading profile...</div>
+  }
+  
   if (!enrolmentNumber) {
     return notFound();
   }
-
-  const studentData = await getStudentData(enrolmentNumber);
-
+  
   if (!studentData) {
     return (
         <div className="grid gap-6">

@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { FormEvent } from 'react';
@@ -36,6 +35,7 @@ export default function LoginPage() {
         if (studentData) {
             // NOTE: We are not checking password, as per original logic.
             // In a real app, you would validate the password here.
+            localStorage.setItem('enrolment_number', enrolmentNumber);
             const destination = `/dashboard?enrolment_number=${enrolmentNumber}`;
             router.push(destination);
         } else {

@@ -1,4 +1,6 @@
 
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,22 +17,38 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table";
-import { getStudentData } from '@/app/actions/get-student-data';
-import { notFound } from 'next/navigation';
+import { getStudentData, StudentData } from '@/app/actions/get-student-data';
+import { useSearchParams, notFound } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-interface HallTicketPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+export default function HallTicketPage() {
+    const searchParams = useSearchParams();
+    const enrolmentNumber = searchParams.get('enrolment_number');
+    const [studentData, setStudentData] = useState<StudentData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-export default async function HallTicketPage({ searchParams }: HallTicketPageProps) {
-    const enrolmentNumber = searchParams.enrolment_number as string;
+    useEffect(() => {
+        async function fetchStudentData() {
+            if (enrolmentNumber) {
+                setIsLoading(true);
+                const data = await getStudentData(enrolmentNumber);
+                setStudentData(data);
+                setIsLoading(false);
+            } else {
+                setIsLoading(false);
+            }
+        }
+        fetchStudentData();
+    }, [enrolmentNumber]);
+
+    if (isLoading) {
+        return <div className="flex h-screen w-full items-center justify-center">Loading hall ticket...</div>
+    }
     
     if (!enrolmentNumber) {
         return notFound();
     }
-
-    const studentData = await getStudentData(enrolmentNumber);
 
     if (!studentData) {
         return (

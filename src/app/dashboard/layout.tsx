@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Bell, Home, Ticket, User, LogOut, ChevronDown, Briefcase, GraduationCap, Menu as MenuIcon } from 'lucide-react';
 import Image from 'next/image';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   Collapsible,
   CollapsibleContent,
@@ -22,11 +22,8 @@ import { cn } from '@/lib/utils';
 import { getStudentData, type StudentData } from '@/app/actions/get-student-data';
 
 
-function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
+function NavigationMenu({ isMobile = false, enrolmentNumber }: { isMobile?: boolean, enrolmentNumber: string | null }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const enrolmentNumber = searchParams.get('enrolment_number');
-
   const [openSection, setOpenSection] = useState('student');
 
   const handleSectionToggle = (section: string) => {
@@ -77,7 +74,7 @@ function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
               key={link.href}
               variant={pathname === link.href ? 'secondary' : 'ghost'}
               className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
-              disabled={!enrolmentNumber && link.href.includes('enrolment_number')}
+              disabled={!enrolmentNumber}
             >
               <Link href={enrolmentNumber ? link.href : '#'}>{link.label}</Link>
             </Button>
@@ -111,7 +108,7 @@ function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
               key={link.label}
               variant={pathname === link.href ? 'secondary' : 'ghost'}
               className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
-              disabled={!enrolmentNumber && link.href.includes('enrolment_number')}
+              disabled={!enrolmentNumber}
             >
               <Link href={enrolmentNumber ? link.href : '#'}>{link.label}</Link>
             </Button>
@@ -148,20 +145,42 @@ function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
 
 
 function DashboardNavContent({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const enrolmentNumber = searchParams.get('enrolment_number');
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [enrolmentNumber, setEnrolmentNumber] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let currentEnrolmentNumber = searchParams.get('enrolment_number');
+    if (!currentEnrolmentNumber) {
+      currentEnrolmentNumber = localStorage.getItem('enrolment_number');
+    }
+
+    if (currentEnrolmentNumber) {
+      setEnrolmentNumber(currentEnrolmentNumber);
+    } else {
+      router.replace('/login');
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     async function fetchStudentData() {
       if (enrolmentNumber) {
+        setIsLoading(true);
         const data = await getStudentData(enrolmentNumber);
         setStudentData(data);
+        setIsLoading(false);
       }
     }
     fetchStudentData();
   }, [enrolmentNumber]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('enrolment_number');
+    router.push('/login');
+  };
 
   const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
   const university = studentData?.university;
@@ -176,6 +195,10 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   }
 
   const footerText = university === 'PONDI' ? '© DDE, Pondicherry University' : '© DDE IGNOU University';
+  
+  if (isLoading) {
+    return <div className="flex h-screen w-full items-center justify-center">Loading dashboard...</div>
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -185,7 +208,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
               {renderLogo(false)}
             </Link>
          </div>
-        <NavigationMenu />
+        <NavigationMenu enrolmentNumber={enrolmentNumber} />
       </aside>
        <div className="flex flex-1 flex-col sm:pl-64">
         <header className="flex h-16 items-center justify-between border-b bg-white px-4 sm:px-6">
@@ -218,11 +241,9 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                       <Link href="/login">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
-                        </Link>
+                    <DropdownMenuItem onClick={handleLogout}>
+                       <LogOut className="mr-2 h-4 w-4" />
+                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -239,7 +260,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <NavigationMenu isMobile={true} />
+                <NavigationMenu isMobile={true} enrolmentNumber={enrolmentNumber} />
               </CollapsibleContent>
            </Collapsible>
         </div>

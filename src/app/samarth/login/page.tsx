@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ export default function SamarthLoginPage() {
         if (studentData) {
             // NOTE: We are not checking password, as per original logic.
             // In a real app, you would validate the password here.
+            localStorage.setItem('enrolment_number', enrolmentNumber);
             const destination = `/dashboard?enrolment_number=${enrolmentNumber}`;
             router.push(destination);
         } else {
