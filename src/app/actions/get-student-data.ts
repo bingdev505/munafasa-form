@@ -31,6 +31,7 @@ export async function getStudentData(): Promise<StudentData | null> {
     const student = data?.[0];
 
     if (!student) {
+      console.log('No student data found in user2 table.');
       return null;
     }
 
