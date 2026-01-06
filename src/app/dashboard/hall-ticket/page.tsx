@@ -9,13 +9,29 @@ import {
 } from '@/components/ui/card';
 import { Download } from 'lucide-react';
 import Link from 'next/link';
+import { getStudentData } from '@/app/actions/get-student-data';
+import { notFound } from 'next/navigation';
 
-// Mock data - in a real app, this would come from your database
-const hallTicketData = {
-  downloadUrl: 'https://picsum.photos/seed/2/800/1100', // Placeholder link for the actual hall ticket PDF
-};
+export default async function HallTicketPage() {
+    const studentData = await getStudentData();
 
-export default function HallTicketPage() {
+    if (!studentData || !studentData.hallTicketUrl) {
+        return (
+             <div className="grid gap-6">
+              <Card className="shadow-md rounded-none">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold text-gray-800">
+                    Hall Ticket Not Available
+                  </CardTitle>
+                  <CardDescription className="text-md text-gray-600">
+                    We could not find a hall ticket for your account. Please contact administration if you believe this is an error.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+        )
+    }
+
   return (
     <div className="grid gap-6">
       <Card className="shadow-md rounded-none">
@@ -32,7 +48,7 @@ export default function HallTicketPage() {
                 <Download className="h-16 w-16 text-blue-500" />
             </div>
             <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto rounded-none">
-              <Link href={hallTicketData.downloadUrl}>
+              <Link href={studentData.hallTicketUrl} target="_blank" rel="noopener noreferrer">
                 <Download className="mr-2 h-4 w-4" />
                 Download Now
               </Link>

@@ -4,12 +4,18 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
+import { getStudentData } from '@/app/actions/get-student-data';
 
-export default function DashboardLayout({
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const studentData = await getStudentData();
+
+  const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
+
   return (
     <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
       <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white dark:bg-gray-800 sm:flex">
@@ -65,8 +71,8 @@ export default function DashboardLayout({
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Button>
-            <div className="h-8 w-8 bg-gray-300 rounded-full overflow-hidden">
-                <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
+            <div className="h-8 w-8 rounded-full overflow-hidden">
+                <Image src={profileImageUrl} alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
             </div>
           </div>
         </header>

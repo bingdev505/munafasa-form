@@ -9,19 +9,19 @@ import {
 } from '@/components/ui/card';
 import { Ticket, User, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import { getStudentData } from '@/app/actions/get-student-data';
 
-// Mock data - in a real app, this would come from your database
-const studentData = {
-  name: 'Rakesh Sharma',
-};
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const studentData = await getStudentData();
+  const studentName = studentData?.name || 'Student';
+
   return (
     <div className="grid gap-6">
       <Card className="shadow-md rounded-none">
         <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-800">
-              Welcome, {studentData.name}!
+              Welcome, {studentName}!
             </CardTitle>
             <CardDescription className="text-md text-gray-600">
               Here are some quick actions to get you started.
