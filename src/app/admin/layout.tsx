@@ -17,6 +17,7 @@ export default function AdminLayout({
   const navLinks = [
     { href: '/admin/attendance', label: 'Attendance' },
     { href: '/admin/registrations', label: 'Registrations' },
+    { href: '/upload-test', label: 'Upload Test' },
     { href: '/', label: 'Main Site' },
   ];
 
