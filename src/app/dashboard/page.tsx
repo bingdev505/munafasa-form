@@ -3,11 +3,7 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
-import { Ticket, User, BookOpen } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Link from 'next/link';
 import { getStudentData } from '@/app/actions/get-student-data';
@@ -45,35 +41,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <Button variant="outline" className="mt-4 rounded-none">
                 CLICK HERE
             </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-none">
-        <CardHeader>
-           <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-           <CardDescription>Quickly access important sections.</CardDescription>
-        </CardHeader>
-        <CardContent>
-             <div className="flex flex-col gap-4 sm:flex-row">
-                <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 sm:w-auto rounded-none">
-                <Link href={`/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`}>
-                    <Ticket className="mr-2 h-4 w-4" />
-                    View Hall Ticket
-                </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full sm:w-auto rounded-none">
-                    <Link href={`/dashboard/profile?enrolment_number=${enrolmentNumber}`}>
-                        <User className="mr-2 h-4 w-4" />
-                        View Profile
-                    </Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full sm:w-auto rounded-none">
-                    <Link href="#">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        My Courses
-                    </Link>
-                </Button>
-            </div>
         </CardContent>
       </Card>
     </div>
