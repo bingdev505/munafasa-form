@@ -16,7 +16,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md shadow-lg overflow-hidden">
+      <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center">
           <Image
@@ -40,22 +40,23 @@ export default function LoginPage() {
                 id="enrolment-number"
                 placeholder="Enrolment Number"
                 required
+                className="rounded-none"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Password" required />
+              <Input id="password" type="password" placeholder="Password" required className="rounded-none" />
             </div>
             
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 rounded-none">
               Login
             </Button>
             
             <div className="flex items-center justify-center space-x-4 mt-4">
-              <Button asChild variant="default" className="bg-green-600 hover:bg-green-700">
+              <Button asChild variant="default" className="bg-green-600 hover:bg-green-700 rounded-none">
                 <Link href="#">New Registration</Link>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="rounded-none">
                 <Link href="#">Reset Password</Link>
               </Button>
             </div>
