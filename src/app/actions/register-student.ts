@@ -90,7 +90,7 @@ export async function registerStudent(
     student_name: formData.get('student_name'),
     course: formData.get('course'),
     email: formData.get('email'),
-    phone: formData.get('phone'),
+    phone: formData.get('phone') || undefined,
     date_of_birth: formData.get('date_of_birth'),
     category: formData.get('category'),
     mobile_number: formData.get('mobile_number'),
@@ -111,7 +111,7 @@ export async function registerStudent(
       success: false,
       message:
         'Invalid form data. ' +
-        Object.values(parsedData.error.flatten().fieldErrors).join(', '),
+        Object.values(parsedData.error.flatten().fieldErrors).flat().join(', '),
     };
   }
 
