@@ -19,9 +19,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const enrolmentNumber = searchParams.get('enrolment_number');
 
-  const [isStudentOpen, setStudentOpen] = useState(true);
-  const [isExamOpen, setExamOpen] = useState(false);
-  const [isTrainingOpen, setTrainingOpen] = useState(false);
+  const [openSection, setOpenSection] = useState('student');
 
   const studentLinks = [
     { href: `/dashboard?enrolment_number=${enrolmentNumber}`, label: 'Dashboard' },
@@ -50,7 +48,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
          </div>
         <nav className="flex-1 space-y-2 p-2">
           {/* Student Collapsible */}
-          <Collapsible open={isStudentOpen} onOpenChange={setStudentOpen}>
+          <Collapsible open={openSection === 'student'} onOpenChange={(isOpen) => setOpenSection(isOpen ? 'student' : '')}>
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
@@ -63,7 +61,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 <ChevronDown
                   className={cn(
                     'h-5 w-5 transition-transform',
-                    isStudentOpen && 'rotate-180'
+                    openSection === 'student' && 'rotate-180'
                   )}
                 />
               </Button>
@@ -84,7 +82,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
           </Collapsible>
 
           {/* Examination Collapsible */}
-          <Collapsible open={isExamOpen} onOpenChange={setExamOpen}>
+          <Collapsible open={openSection === 'exam'} onOpenChange={(isOpen) => setOpenSection(isOpen ? 'exam' : '')}>
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
@@ -97,7 +95,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 <ChevronDown
                   className={cn(
                     'h-5 w-5 transition-transform',
-                    isExamOpen && 'rotate-180'
+                    openSection === 'exam' && 'rotate-180'
                   )}
                 />
               </Button>
@@ -118,7 +116,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
           </Collapsible>
           
           {/* Training & Placement Collapsible */}
-          <Collapsible open={isTrainingOpen} onOpenChange={setTrainingOpen}>
+          <Collapsible open={openSection === 'training'} onOpenChange={(isOpen) => setOpenSection(isOpen ? 'training' : '')}>
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
@@ -131,7 +129,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 <ChevronDown
                   className={cn(
                     'h-5 w-5 transition-transform',
-                    isTrainingOpen && 'rotate-180'
+                    openSection === 'training' && 'rotate-180'
                   )}
                 />
               </Button>
