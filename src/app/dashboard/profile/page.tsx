@@ -55,6 +55,17 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   const profileImageUrl = studentData.profileUrl || "https://picsum.photos/seed/1/120/120";
 
+  const permanentAddress = {
+    line1: studentData.permanentAddress.line1 || studentData.correspondenceAddress.line1,
+    line2: studentData.permanentAddress.line2 || studentData.correspondenceAddress.line2,
+    line3: studentData.permanentAddress.line3 || studentData.correspondenceAddress.line3,
+    district: studentData.permanentAddress.district || studentData.correspondenceAddress.district,
+    state: studentData.permanentAddress.state || studentData.correspondenceAddress.state,
+    pincode: studentData.permanentAddress.pincode || studentData.correspondenceAddress.pincode,
+    country: studentData.permanentAddress.country || studentData.correspondenceAddress.country,
+  };
+
+
   return (
     <div className="grid gap-6">
         {/* Top Card for Profile Header */}
@@ -149,12 +160,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                     <CardTitle className="text-lg font-semibold">Permanent Address</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <DetailRow label="Address Line 1" value={studentData.permanentAddress.line1} />
-                    <DetailRow label="Address Line 2" value={studentData.permanentAddress.line2} />
-                    <DetailRow label="Address Line 3" value={studentData.permanentAddress.line3} />
-                    <DetailRow label="District" value={studentData.permanentAddress.district} />
-                    <DetailRow label="State, Pincode" value={`${studentData.permanentAddress.state || ''}, ${studentData.permanentAddress.pincode || ''}`} />
-                    <DetailRow label="Country" value={studentData.permanentAddress.country} />
+                    <DetailRow label="Address Line 1" value={permanentAddress.line1} />
+                    <DetailRow label="Address Line 2" value={permanentAddress.line2} />
+                    <DetailRow label="Address Line 3" value={permanentAddress.line3} />
+                    <DetailRow label="District" value={permanentAddress.district} />
+                    <DetailRow label="State, Pincode" value={`${permanentAddress.state || ''}, ${permanentAddress.pincode || ''}`} />
+                    <DetailRow label="Country" value={permanentAddress.country} />
                 </CardContent>
             </Card>
       </div>
