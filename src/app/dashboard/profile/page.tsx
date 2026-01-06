@@ -46,12 +46,26 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     <div className="grid gap-6">
       <Card className="shadow-md rounded-none">
         <CardHeader className="bg-gray-50 p-6">
-            <CardTitle className="text-2xl font-bold text-gray-800">
-              {studentData.name || 'N/A'}
-            </CardTitle>
-            <CardDescription className="text-md text-gray-600">
-              {studentData.course || 'N/A'}
-            </CardDescription>
+          <div className="flex items-center gap-6">
+              <div className="relative h-24 w-24 overflow-hidden">
+                <Image
+                    src={profileImageUrl}
+                    alt="Student Profile Photo"
+                    width={120}
+                    height={120}
+                    className="object-cover"
+                    data-ai-hint="student photo"
+                />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-800">
+                  {studentData.name || 'N/A'}
+                </CardTitle>
+                <CardDescription className="text-md text-gray-600">
+                  {studentData.course || 'N/A'}
+                </CardDescription>
+              </div>
+          </div>
         </CardHeader>
         <CardContent className="p-6">
             <h3 className="mb-4 text-lg font-semibold border-b pb-2">Student Information</h3>
