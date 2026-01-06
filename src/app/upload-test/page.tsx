@@ -73,7 +73,6 @@ export default function UploadTestPage() {
                         height="200"
                         src={uploadResult.public_id}
                         alt="Uploaded image"
-                        className="mt-2 rounded-md"
                     />
                   </div>
                 )}
