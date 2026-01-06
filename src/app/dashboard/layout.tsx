@@ -164,13 +164,16 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
   }, [enrolmentNumber]);
 
   const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
+  const university = studentData?.university;
+  const logoSrc = university === 'PONDI' ? '/samarth-logo.png' : '/logo.png';
+  const logoAlt = university === 'PONDI' ? 'Samarth Logo' : 'IGNOU Logo';
   
   return (
     <div className="flex min-h-screen w-full bg-background">
        <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white sm:flex">
          <div className="p-4 border-b">
             <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-              <Image src="/logo.png" alt="University Logo" width={150} height={40} data-ai-hint="university logo"/>
+              <Image src={logoSrc} alt={logoAlt} width={150} height={40} data-ai-hint="university logo"/>
             </Link>
          </div>
         <NavigationMenu />
@@ -180,7 +183,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
            <div className="flex items-center gap-4">
              <div className="sm:hidden">
               <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-                <Image src="/logo.png" alt="University Logo" width={120} height={32} data-ai-hint="university logo"/>
+                <Image src={logoSrc} alt={logoAlt} width={120} height={32} data-ai-hint="university logo"/>
               </Link>
              </div>
              <div className="text-sm text-muted-foreground hidden md:block">

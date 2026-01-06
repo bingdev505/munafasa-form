@@ -14,21 +14,48 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { FormEvent } from 'react';
+import { getStudentData } from '@/app/actions/get-student-data';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     const enrolmentNumber = formData.get('enrolment-number') as string;
     
     if (enrolmentNumber) {
-        router.push(`/dashboard?enrolment_number=${enrolmentNumber}`);
+        const studentData = await getStudentData(enrolmentNumber);
+        
+        if (studentData) {
+            // NOTE: We are not checking password, as per original logic.
+            // In a real app, you would validate the password here.
+            const destination = studentData.university === 'PONDI' 
+                ? `/samarth/dashboard?enrolment_number=${enrolmentNumber}`
+                : `/dashboard?enrolment_number=${enrolmentNumber}`;
+            
+            router.push(destination);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Login Failed',
+                description: 'No student found with that enrolment number.',
+            });
+            setIsLoading(false);
+        }
     } else {
-        // Handle case where enrolment number is not entered
-        // For now, we'll just log an error, but you might want to show a message to the user.
-        console.error("Enrolment number is required.");
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'Enrolment number is required.',
+        });
+        setIsLoading(false);
     }
   };
 
@@ -68,8 +95,15 @@ export default function LoginPage() {
             </div>
             
             <div className="flex justify-center">
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-none">
-                    Login
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 rounded-none" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      'Login'
+                    )}
                 </Button>
             </div>
             

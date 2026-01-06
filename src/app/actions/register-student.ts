@@ -16,6 +16,7 @@ const AddressSchema = z.object({
 const FormSchema = z.object({
   student_name: z.string().min(1, 'Student name is required'),
   course: z.string().min(1, 'Course is required'),
+  university: z.string().min(1, 'University is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   date_of_birth: z.string().min(1, 'Date of birth is required'),
@@ -44,6 +45,7 @@ export async function registerStudent(
   const dataToValidate = {
     student_name: formData.get('student_name'),
     course: formData.get('course'),
+    university: formData.get('university'),
     email: formData.get('email'),
     phone: formData.get('phone') || undefined,
     date_of_birth: formData.get('date_of_birth'),
@@ -74,6 +76,7 @@ export async function registerStudent(
   const {
     student_name,
     course,
+    university,
     email,
     phone,
     date_of_birth,
@@ -90,6 +93,7 @@ export async function registerStudent(
     const dbData = {
       student_name,
       course,
+      university,
       email,
       phone,
       date_of_birth,

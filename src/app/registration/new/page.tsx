@@ -42,6 +42,7 @@ const AddressSchema = z.object({
 const FormSchema = z.object({
   student_name: z.string().min(1, 'Student name is required'),
   course: z.string().min(1, 'Course is required'),
+  university: z.string().min(1, 'University is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   date_of_birth: z.string().min(1, 'Date of birth is required'),
@@ -74,6 +75,7 @@ export default function NewRegistrationPage() {
     defaultValues: {
       student_name: '',
       course: '',
+      university: '',
       email: '',
       phone: '',
       date_of_birth: '',
@@ -156,7 +158,7 @@ export default function NewRegistrationPage() {
         title: 'Registration Successful',
         description: 'Your account has been created. Redirecting to login...',
       });
-      router.push(`/login?enrolment_number=${data.enrolment_number}`);
+      router.push(`/login`);
     } else {
       toast({
         variant: 'destructive',
@@ -199,6 +201,22 @@ export default function NewRegistrationPage() {
                     {...form.register('student_name')}
                   />
                   {renderError(form.formState.errors.student_name?.message)}
+                </div>
+                 <div>
+                  <Label htmlFor="university">University</Label>
+                  <Select
+                    onValueChange={(value) => form.setValue('university', value)}
+                    defaultValue={form.getValues('university')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a university" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="IGNOU">IGNOU</SelectItem>
+                      <SelectItem value="PONDI">PONDI</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {renderError(form.formState.errors.university?.message)}
                 </div>
                 <div>
                   <Label htmlFor="course">Course</Label>
@@ -284,9 +302,11 @@ export default function NewRegistrationPage() {
                   <CldUploadWidget
                     uploadPreset={uploadPreset}
                     onSuccess={(result) => {
-                      const info = result.info as { secure_url: string };
-                      setPhotoUrl(info.secure_url);
-                      form.setValue('profile_url', info.secure_url);
+                      if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+                        const info = result.info as { secure_url: string };
+                        setPhotoUrl(info.secure_url);
+                        form.setValue('profile_url', info.secure_url);
+                      }
                     }}
                   >
                     {({ open }) => (
@@ -323,10 +343,12 @@ export default function NewRegistrationPage() {
                   <Label>Hall Ticket (PDF, Optional)</Label>
                   <CldUploadWidget
                     uploadPreset={uploadPreset}
-                    onSuccess={(result) => {
-                      const info = result.info as { secure_url: string };
-                      setHallTicketUrl(info.secure_url);
-                      form.setValue('hall_ticket_url', info.secure_url);
+                     onSuccess={(result) => {
+                      if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+                        const info = result.info as { secure_url: string };
+                        setHallTicketUrl(info.secure_url);
+                        form.setValue('hall_ticket_url', info.secure_url);
+                      }
                     }}
                   >
                     {({ open }) => (

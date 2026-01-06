@@ -6,6 +6,7 @@ import { supabase } from '@/utils/supabaseClient';
 export type StudentData = {
   name: string | null;
   course: string | null;
+  university: string | null;
   profileUrl: string | null;
   hallTicketUrl: string | null;
   address: string | null;
@@ -43,7 +44,7 @@ export async function getStudentData(enrolmentNumber: string): Promise<StudentDa
     const { data, error } = await supabase
       .from('user2')
       .select(
-        'student_name, course, profile_url, hallticket_url, address, email, phone, date_of_birth, category, mobile_number, correspondence_address_line1, correspondence_address_line2, correspondence_address_line3, correspondence_district, correspondence_state, correspondence_pincode, correspondence_country, permanent_address_line1, permanent_address_line2, permanent_address_line3, permanent_district, permanent_state, permanent_pincode, permanent_country'
+        'student_name, course, university, profile_url, hallticket_url, address, email, phone, date_of_birth, category, mobile_number, correspondence_address_line1, correspondence_address_line2, correspondence_address_line3, correspondence_district, correspondence_state, correspondence_pincode, correspondence_country, permanent_address_line1, permanent_address_line2, permanent_address_line3, permanent_district, permanent_state, permanent_pincode, permanent_country'
       )
       .eq('enrolment_number', enrolmentNumber)
       .single();
@@ -66,6 +67,7 @@ export async function getStudentData(enrolmentNumber: string): Promise<StudentDa
     return {
       name: data.student_name,
       course: data.course,
+      university: data.university,
       profileUrl: data.profile_url,
       hallTicketUrl: data.hallticket_url,
       address: data.address,
