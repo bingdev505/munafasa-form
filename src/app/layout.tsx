@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 export const metadata: Metadata = {
   title: "FormFlow",
   description: "A simple form.",
+  icons: null,
 };
 
 export default function RootLayout({
