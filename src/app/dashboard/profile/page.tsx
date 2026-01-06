@@ -16,6 +16,17 @@ interface ProfilePageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
+const DetailRow = ({ label, value }: { label: string, value: string | null | undefined }) => {
+    if (!value) return null;
+    return (
+        <div>
+            <p className="font-semibold text-gray-500 text-xs uppercase">{label}</p>
+            <p className="text-gray-800">{value}</p>
+        </div>
+    )
+};
+
+
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const enrolmentNumber = searchParams.enrolment_number as string;
 
@@ -100,6 +111,53 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 </Card>
             </CardContent>
       </Card>
+
+      {/* Personal Details Card */}
+      <Card className="shadow-md rounded-none">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Personal Details</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <DetailRow label="Full Name" value={studentData.name} />
+            <DetailRow label="Date of Birth" value={studentData.dateOfBirth} />
+            <DetailRow label="Category" value={studentData.category} />
+            <DetailRow label="Mobile Number" value={studentData.mobileNumber} />
+            <DetailRow label="Applicant's Email" value={studentData.email} />
+        </CardContent>
+      </Card>
+
+      {/* Address Details Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Correspondence Address Card */}
+            <Card className="shadow-md rounded-none">
+                <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Correspondence Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <DetailRow label="Address Line 1" value={studentData.correspondenceAddress.line1} />
+                    <DetailRow label="Address Line 2" value={studentData.correspondenceAddress.line2} />
+                    <DetailRow label="Address Line 3" value={studentData.correspondenceAddress.line3} />
+                    <DetailRow label="District" value={studentData.correspondenceAddress.district} />
+                    <DetailRow label="State, Pincode" value={`${studentData.correspondenceAddress.state || ''}, ${studentData.correspondenceAddress.pincode || ''}`} />
+                    <DetailRow label="Country" value={studentData.correspondenceAddress.country} />
+                </CardContent>
+            </Card>
+
+            {/* Permanent Address Card */}
+            <Card className="shadow-md rounded-none">
+                <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Permanent Address</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <DetailRow label="Address Line 1" value={studentData.permanentAddress.line1} />
+                    <DetailRow label="Address Line 2" value={studentData.permanentAddress.line2} />
+                    <DetailRow label="Address Line 3" value={studentData.permanentAddress.line3} />
+                    <DetailRow label="District" value={studentData.permanentAddress.district} />
+                    <DetailRow label="State, Pincode" value={`${studentData.permanentAddress.state || ''}, ${studentData.permanentAddress.pincode || ''}`} />
+                    <DetailRow label="Country" value={studentData.permanentAddress.country} />
+                </CardContent>
+            </Card>
+      </div>
     </div>
   );
 }
