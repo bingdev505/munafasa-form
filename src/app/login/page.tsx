@@ -29,7 +29,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
         <div className="border-b-4 border-blue-600"></div>
-        <CardHeader className="items-center text-center">
+        <CardHeader className="items-center text-center py-6">
           <Image
             src="/logo.png"
             alt="University Logo"

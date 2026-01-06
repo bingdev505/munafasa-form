@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
       <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white dark:bg-gray-800 sm:flex">
-        <div className="flex h-16 items-center border-b px-6">
+        <div className="flex items-center border-b px-6 py-4">
            <Link href="/dashboard">
             <Image 
                 src="/logo.png" 
@@ -60,7 +60,7 @@ export default async function DashboardLayout({
         </div>
       </aside>
       <div className="flex flex-1 flex-col sm:pl-64">
-        <header className="flex h-16 items-center justify-between border-b bg-white px-6 dark:bg-gray-800 sm:justify-end">
+        <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800 sm:justify-end">
            <div className="sm:hidden">
              <Link href="/dashboard">
                 <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
