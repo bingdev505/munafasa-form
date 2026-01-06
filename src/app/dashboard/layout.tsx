@@ -1,0 +1,76 @@
+import React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
+import Image from 'next/image';
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
+      <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white dark:bg-gray-800 sm:flex">
+        <div className="flex h-16 items-center border-b px-6">
+           <Link href="/dashboard">
+            <Image 
+                src="/logo.png" 
+                alt="University Logo" 
+                width={140} 
+                height={40}
+                data-ai-hint="university logo" 
+            />
+          </Link>
+        </div>
+        <nav className="flex-1 space-y-2 p-4">
+          <Button asChild variant="ghost" className="w-full justify-start">
+            <Link href="/dashboard">
+              <Home className="mr-2 h-4 w-4" />
+              Dashboard
+            </Link>
+          </Button>
+          <Button asChild variant="secondary" className="w-full justify-start">
+            <Link href="#">
+              <Ticket className="mr-2 h-4 w-4" />
+              Hall Ticket
+            </Link>
+          </Button>
+           <Button asChild variant="ghost" className="w-full justify-start">
+            <Link href="#">
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </Link>
+          </Button>
+        </nav>
+        <div className="mt-auto p-4">
+            <Button asChild variant="ghost" className="w-full justify-start">
+                <Link href="/login">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Link>
+            </Button>
+        </div>
+      </aside>
+      <div className="flex flex-1 flex-col sm:pl-64">
+        <header className="flex h-16 items-center justify-between border-b bg-white px-6 dark:bg-gray-800 sm:justify-end">
+           <div className="sm:hidden">
+             <Link href="/dashboard">
+                <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
+            </Link>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon">
+              <Bell className="h-5 w-5" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+            <div className="h-8 w-8 rounded-full bg-gray-300">
+                <Image src="https://picsum.photos/seed/student-profile/100/100" alt="Student Profile" width={32} height={32} className="rounded-full" data-ai-hint="profile person" />
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
+}
