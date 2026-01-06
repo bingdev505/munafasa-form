@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { FormEvent } from 'react';
 import { getStudentData } from '@/app/actions/get-student-data';
@@ -33,8 +33,6 @@ export default function LoginPage() {
         const studentData = await getStudentData(enrolmentNumber);
         
         if (studentData) {
-            // NOTE: We are not checking password, as per original logic.
-            // In a real app, you would validate the password here.
             localStorage.setItem('enrolment_number', enrolmentNumber);
             const destination = `/dashboard?enrolment_number=${enrolmentNumber}`;
             router.push(destination);
@@ -61,7 +59,14 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
-          <span className="font-bold tracking-wide text-primary text-4xl mb-2">IGNOU</span>
+           <Image
+              src="/login.png"
+              alt="IGNOU Logo"
+              width={200}
+              height={60}
+              data-ai-hint="university logo"
+              className="mb-2"
+            />
           <p className="font-semibold text-lg">Student Portal</p>
         </CardHeader>
         <CardContent className="px-8 pb-8">

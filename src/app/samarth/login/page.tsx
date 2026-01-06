@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -34,8 +33,6 @@ export default function SamarthLoginPage() {
         const studentData = await getStudentData(enrolmentNumber);
         
         if (studentData) {
-            // NOTE: We are not checking password, as per original logic.
-            // In a real app, you would validate the password here.
             localStorage.setItem('enrolment_number', enrolmentNumber);
             const destination = `/dashboard?enrolment_number=${enrolmentNumber}`;
             router.push(destination);
@@ -63,7 +60,7 @@ export default function SamarthLoginPage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
           <Image
-            src="/samarth-logo.png"
+            src="/samarth-login.png"
             alt="Samarth University Logo"
             width={200}
             height={60}
