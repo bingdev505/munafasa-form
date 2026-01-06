@@ -71,7 +71,7 @@ function NavigationMenu({ isMobile = false, enrolmentNumber }: { isMobile?: bool
           {studentLinks.map((link) => (
             <Button
               asChild
-              key={link.href}
+              key={`${link.href}-${link.label}`}
               variant={pathname === link.href ? 'secondary' : 'ghost'}
               className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
               disabled={!enrolmentNumber}
@@ -105,7 +105,7 @@ function NavigationMenu({ isMobile = false, enrolmentNumber }: { isMobile?: bool
           {examLinks.map((link) => (
             <Button
               asChild
-              key={link.label}
+              key={`${link.href}-${link.label}`}
               variant={pathname === link.href ? 'secondary' : 'ghost'}
               className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
               disabled={!enrolmentNumber}
@@ -156,6 +156,10 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
     let currentEnrolmentNumber = searchParams.get('enrolment_number');
     if (!currentEnrolmentNumber) {
       currentEnrolmentNumber = localStorage.getItem('enrolment_number');
+      if (currentEnrolmentNumber) {
+        // If found in localStorage, update the URL without reloading the page
+        router.replace(`${window.location.pathname}?enrolment_number=${currentEnrolmentNumber}`);
+      }
     }
 
     if (currentEnrolmentNumber) {
@@ -196,7 +200,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
 
   const footerText = university === 'PONDI' ? '© DDE, Pondicherry University' : '© DDE IGNOU University';
   
-  if (isLoading) {
+  if (isLoading && !studentData) {
     return <div className="flex h-screen w-full items-center justify-center">Loading dashboard...</div>
   }
 
