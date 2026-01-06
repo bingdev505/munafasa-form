@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { supabase } from '@/utils/supabaseClient';
 import { v2 as cloudinary } from 'cloudinary';
+import { Writable } from 'stream';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -37,11 +38,9 @@ const FormSchema = z.object({
   hall_ticket: z.any().optional(),
 });
 
-type FormSchemaType = z.infer<typeof FormSchema>;
-
-// Helper function to upload a file buffer to Cloudinary
+// Helper function to upload a file stream to Cloudinary
 async function uploadToCloudinary(
-  buffer: Buffer,
+  file: File,
   folder: string
 ): Promise<string | null> {
   return new Promise((resolve, reject) => {
@@ -58,9 +57,21 @@ async function uploadToCloudinary(
         }
       }
     );
-    stream.end(buffer);
+
+    const fileStream = file.stream();
+    const reader = fileStream.getReader();
+
+    reader.read().then(function processText({ done, value }) {
+      if (done) {
+        stream.end();
+        return;
+      }
+      stream.write(value);
+      return reader.read().then(processText);
+    }).catch(reject);
   });
 }
+
 
 export async function registerStudent(
   formData: FormData
@@ -122,8 +133,7 @@ export async function registerStudent(
 
     // Upload profile photo if it exists
     if (profilePhotoFile && profilePhotoFile.size > 0) {
-      const photoBuffer = Buffer.from(await profilePhotoFile.arrayBuffer());
-      profileUrl = await uploadToCloudinary(photoBuffer, 'profile_photos');
+      profileUrl = await uploadToCloudinary(profilePhotoFile, 'profile_photos');
       if (!profileUrl) {
         throw new Error('Profile photo upload failed.');
       }
@@ -131,8 +141,7 @@ export async function registerStudent(
 
     // Upload hall ticket if it exists
     if (hallTicketFile && hallTicketFile.size > 0) {
-      const hallTicketBuffer = Buffer.from(await hallTicketFile.arrayBuffer());
-      hallTicketUrl = await uploadToCloudinary(hallTicketBuffer, 'hall_tickets');
+      hallTicketUrl = await uploadToCloudinary(hallTicketFile, 'hall_tickets');
        if (!hallTicketUrl) {
         throw new Error('Hall ticket upload failed.');
       }
