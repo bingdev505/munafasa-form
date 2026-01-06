@@ -13,10 +13,11 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 
 function NavigationMenu({ isMobile = false }: { isMobile?: boolean }) {
@@ -180,18 +181,24 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 <Button className="bg-green-600 hover:bg-green-700 rounded-none text-xs sm:text-sm h-8 sm:h-9">
                     Public Notice/Results
                 </Button>
-                <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-                        <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-2 cursor-pointer">
+                        <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                            <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} data-ai-hint="profile person" />
+                        </div>
+                        {enrolmentNumber && <span className="text-sm font-medium text-primary hidden sm:inline">{enrolmentNumber}</span>}
                     </div>
-                    {enrolmentNumber && <span className="text-sm font-medium text-primary hidden sm:inline">{enrolmentNumber}</span>}
-                </div>
-                <Button asChild variant="ghost" size="sm" className='hidden sm:inline-flex'>
-                        <Link href="/login">
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                       <Link href="/login">
                             <LogOut className="mr-2 h-4 w-4" />
                             Logout
                         </Link>
-                </Button>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </header>
 
