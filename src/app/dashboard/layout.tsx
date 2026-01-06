@@ -165,15 +165,23 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
 
   const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
   const university = studentData?.university;
-  const logoSrc = university === 'PONDI' ? '/samarth-logo.png' : '/logo.png';
-  const logoAlt = university === 'PONDI' ? 'Samarth Logo' : 'IGNOU Logo';
   
+  const renderLogo = (isMobile: boolean) => {
+    if (university === 'PONDI') {
+      return <span className={cn("font-bold tracking-wide text-primary", isMobile ? "text-2xl" : "text-3xl")}>PUDDE</span>;
+    }
+    // Default to IGNOU logo
+    return <Image src="/logo.png" alt="IGNOU Logo" width={isMobile ? 120 : 150} height={isMobile ? 32: 40} data-ai-hint="university logo"/>;
+  }
+
+  const footerText = university === 'PONDI' ? '© DDE, Pondicherry University' : '© DDE IGNOU University';
+
   return (
     <div className="flex min-h-screen w-full bg-background">
        <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white sm:flex">
-         <div className="p-4 border-b">
+         <div className="p-4 border-b flex items-center h-16">
             <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-              <Image src={logoSrc} alt={logoAlt} width={150} height={40} data-ai-hint="university logo"/>
+              {renderLogo(false)}
             </Link>
          </div>
         <NavigationMenu />
@@ -183,7 +191,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
            <div className="flex items-center gap-4">
              <div className="sm:hidden">
               <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
-                <Image src={logoSrc} alt={logoAlt} width={120} height={32} data-ai-hint="university logo"/>
+                {renderLogo(true)}
               </Link>
              </div>
              <div className="text-sm text-muted-foreground hidden md:block">
@@ -239,7 +247,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
         <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-100">
             {children}
              <footer className="text-center mt-8 text-sm text-muted-foreground">
-                © DDE IGNOU University
+                {footerText}
             </footer>
         </main>
       </div>
