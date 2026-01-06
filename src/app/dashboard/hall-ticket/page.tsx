@@ -18,6 +18,11 @@ interface HallTicketPageProps {
 
 export default async function HallTicketPage({ searchParams }: HallTicketPageProps) {
     const enrolmentNumber = searchParams.enrolment_number as string;
+    
+    if (!enrolmentNumber) {
+        return notFound();
+    }
+
     const studentData = await getStudentData(enrolmentNumber);
 
     if (!studentData || !studentData.hallTicketUrl) {

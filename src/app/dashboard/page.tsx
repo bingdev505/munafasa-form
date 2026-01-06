@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/card';
 import { Ticket, User, BookOpen } from 'lucide-react';
 import Link from 'next/link';
-import { getStudentData, StudentData } from '@/app/actions/get-student-data';
+import { getStudentData } from '@/app/actions/get-student-data';
+import { notFound } from 'next/navigation';
 
 interface DashboardPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -17,6 +18,11 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const enrolmentNumber = searchParams.enrolment_number as string;
+  
+  if (!enrolmentNumber) {
+    return notFound();
+  }
+
   const studentData = await getStudentData(enrolmentNumber);
   const studentName = studentData?.name || 'Student';
 

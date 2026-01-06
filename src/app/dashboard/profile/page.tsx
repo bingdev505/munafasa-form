@@ -16,10 +16,28 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const enrolmentNumber = searchParams.enrolment_number as string;
+
+  if (!enrolmentNumber) {
+    return notFound();
+  }
+
   const studentData = await getStudentData(enrolmentNumber);
 
   if (!studentData) {
-    return notFound();
+    return (
+        <div className="grid gap-6">
+            <Card className="shadow-md rounded-none">
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold text-gray-800">
+                Student Not Found
+                </CardTitle>
+                <CardDescription className="text-md text-gray-600">
+                We could not find a profile for the provided enrolment number.
+                </CardDescription>
+            </CardHeader>
+            </Card>
+        </div>
+    );
   }
 
   const profileImageUrl = studentData.profileUrl || "https://picsum.photos/seed/1/120/120";
@@ -51,6 +69,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 <div>
                     <p className="font-semibold text-gray-500">Student Name</p>
                     <p className="text-gray-800">{studentData.name || 'N/A'}</p>
+                </div>
+                 <div>
+                    <p className="font-semibold text-gray-500">Enrolment Number</p>
+                    <p className="text-gray-800">{enrolmentNumber}</p>
                 </div>
                 <div>
                     <p className="font-semibold text-gray-500">Course</p>

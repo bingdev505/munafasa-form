@@ -1,33 +1,25 @@
 
-import React from 'react';
+"use client";
+
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { getStudentData } from '@/app/actions/get-student-data';
+import { useSearchParams } from 'next/navigation';
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+function DashboardNav() {
+  const searchParams = useSearchParams();
+  const enrolmentNumber = searchParams.get('enrolment_number');
+  const profileImageUrl =  "https://picsum.photos/seed/1/32/32"; // Placeholder, real image is fetched in profile page now
 
-export default async function DashboardLayout({
-  children,
-  searchParams,
-}: DashboardLayoutProps) {
-  const enrolmentNumber = searchParams.enrolment_number as string;
-  const studentData = await getStudentData(enrolmentNumber);
-
-  const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
-  
-  // Pass studentData to children that are server components
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
-      // @ts-ignore
-      return React.cloneElement(child, { studentData });
-    }
-    return child;
-  });
+  // If there's no enrolment number, we probably don't want to show the nav, or we show a limited version.
+  // For now, we'll just make the links inactive.
+  const navLinks = [
+    { href: `/dashboard?enrolment_number=${enrolmentNumber}`, icon: Home, label: 'Dashboard' },
+    { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, icon: Ticket, label: 'Hall Ticket' },
+    { href: `/dashboard/profile?enrolment_number=${enrolmentNumber}`, icon: User, label: 'Profile' },
+  ];
 
   return (
     <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
@@ -44,24 +36,14 @@ export default async function DashboardLayout({
           </Link>
         </div>
         <nav className="flex-1 space-y-2 p-4">
-          <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href={`/dashboard?enrolment_number=${enrolmentNumber}`}>
-              <Home className="mr-2 h-4 w-4" />
-              Dashboard
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href={`/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`}>
-              <Ticket className="mr-2 h-4 w-4" />
-              Hall Ticket
-            </Link>
-          </Button>
-           <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href={`/dashboard/profile?enrolment_number=${enrolmentNumber}`}>
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </Link>
-          </Button>
+          {navLinks.map((link) => (
+             <Button asChild variant="ghost" className="w-full justify-start rounded-none" key={link.href} disabled={!enrolmentNumber}>
+              <Link href={enrolmentNumber ? link.href : '#'}>
+                <link.icon className="mr-2 h-4 w-4" />
+                {link.label}
+              </Link>
+            </Button>
+          ))}
         </nav>
         <div className="mt-auto p-4">
             <Button asChild variant="ghost" className="w-full justify-start rounded-none">
@@ -75,7 +57,7 @@ export default async function DashboardLayout({
       <div className="flex flex-1 flex-col sm:pl-64">
         <header className="flex items-center justify-between border-b bg-white px-6 py-4 dark:bg-gray-800 sm:justify-end">
            <div className="sm:hidden">
-             <Link href="/dashboard">
+             <Link href={enrolmentNumber ? `/dashboard?enrolment_number=${enrolmentNumber}` : '#'}>
                 <Image src="/logo.png" alt="University Logo" width={120} height={35} data-ai-hint="university logo"/>
             </Link>
           </div>
@@ -84,13 +66,30 @@ export default async function DashboardLayout({
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Button>
-            <div className="h-8 w-8 rounded-full overflow-hidden">
+             {/* This will be static now, profile image shown on profile page */}
+            <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-200">
                 <Image src={profileImageUrl} alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{childrenWithProps}</main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{/* Children passed here will be the page components */}</main>
       </div>
     </div>
+  )
+}
+
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<div>Loading Navigation...</div>}>
+      <DashboardNav />
+      <div className="sm:pl-64">
+        {children}
+      </div>
+    </Suspense>
   );
 }
