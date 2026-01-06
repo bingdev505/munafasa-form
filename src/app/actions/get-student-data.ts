@@ -17,14 +17,12 @@ export async function getStudentData(enrolmentNumber: string): Promise<StudentDa
   }
 
   try {
-    // In a real app, you would have a unique identifier. We assume 'student_name' is being used as one for now.
-    // Ideally this would be an 'enrolment_number' column. Let's use 'student_name' as a stand-in.
     const { data, error } = await supabase
       .from('user2')
       .select(
         'student_name, course, profile_url, hallticket_url, address'
       )
-      .eq('student_name', enrolmentNumber) // Assuming the enrolment number is stored in the 'student_name' column for this example
+      .eq('enrolment_number', enrolmentNumber)
       .single();
 
     if (error) {
