@@ -154,7 +154,7 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
         <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-100">
             {children}
              <footer className="text-center mt-8 text-sm text-muted-foreground">
-                © DDE Pondicherry University
+                © DDE IGNOU University
             </footer>
         </main>
       </div>
