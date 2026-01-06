@@ -57,36 +57,36 @@ export default async function HallTicketPage({ searchParams }: HallTicketPagePro
             </CardHeader>
             <CardContent>
                 <div className="rounded-md border overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>S.No</TableHead>
-                        <TableHead>Reference Number</TableHead>
-                        <TableHead>Programme</TableHead>
-                        <TableHead>Examination Session / Type</TableHead>
-                        <TableHead>Enrolment Number</TableHead>
-                        <TableHead>Term</TableHead>
-                        <TableHead>Application Status</TableHead>
-                        <TableHead className="text-center">Action</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    <TableRow>
-                        <TableCell>1</TableCell>
-                        <TableCell>97240</TableCell>
-                        <TableCell>{studentData.course || 'ODL36914: MASTER OF BUSINESS ADMINISTRATION (FINANCE)'}</TableCell>
-                        <TableCell>DECEMBER 2025 - SEMESTER</TableCell>
-                        <TableCell>{enrolmentNumber}</TableCell>
-                        <TableCell>4 SEMESTER</TableCell>
-                        <TableCell>VERIFIED</TableCell>
-                        <TableCell className="text-center">
-                            <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 rounded-none" disabled={!studentData.hallTicketUrl}>
-                                <Link href={studentData.hallTicketUrl || '#'} target="_blank" rel="noopener noreferrer">View</Link>
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                    </TableBody>
-                </Table>
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>S.No</TableHead>
+                            <TableHead>Reference Number</TableHead>
+                            <TableHead>Programme</TableHead>
+                            <TableHead>Examination Session / Type</TableHead>
+                            <TableHead>Enrolment Number</TableHead>
+                            <TableHead>Term</TableHead>
+                            <TableHead>Application Status</TableHead>
+                            <TableHead className="text-center">Action</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        <TableRow>
+                            <TableCell>1</TableCell>
+                            <TableCell>97240</TableCell>
+                            <TableCell>{studentData.course || 'ODL36914: MASTER OF BUSINESS ADMINISTRATION (FINANCE)'}</TableCell>
+                            <TableCell>DECEMBER 2025 - SEMESTER</TableCell>
+                            <TableCell>{enrolmentNumber}</TableCell>
+                            <TableCell>4 SEMESTER</TableCell>
+                            <TableCell>VERIFIED</TableCell>
+                            <TableCell className="text-center">
+                                <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 rounded-none" disabled={!studentData.hallTicketUrl}>
+                                    <Link href={studentData.hallTicketUrl || '#'} target="_blank" rel="noopener noreferrer">View</Link>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
             </CardContent>
         </Card>
