@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
            <Image
-              src="https://picsum.photos/seed/login/200/60"
+              src="/logo.png"
               alt="IGNOU Logo"
               width={200}
               height={60}
