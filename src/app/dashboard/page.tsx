@@ -40,9 +40,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </Alert>
 
       <Card className="rounded-none">
+        <CardContent className="p-6">
+            <h3 className="text-lg font-semibold">{courseName}</h3>
+            <Button variant="outline" className="mt-4 rounded-none">
+                CLICK HERE
+            </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-none">
         <CardHeader>
-           <CardTitle className="text-lg font-semibold">{courseName}</CardTitle>
-           <CardDescription>Quick actions for your course.</CardDescription>
+           <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+           <CardDescription>Quickly access important sections.</CardDescription>
         </CardHeader>
         <CardContent>
              <div className="flex flex-col gap-4 sm:flex-row">
