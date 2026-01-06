@@ -158,7 +158,11 @@ export default function NewRegistrationPage() {
         title: 'Registration Successful',
         description: 'Your account has been created. Redirecting to login...',
       });
-      router.push(`/login`);
+      if (data.university === 'PONDI') {
+        router.push('/samarth/login');
+      } else {
+        router.push(`/login`);
+      }
     } else {
       toast({
         variant: 'destructive',
