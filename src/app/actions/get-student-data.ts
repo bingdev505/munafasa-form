@@ -8,6 +8,7 @@ export type StudentData = {
   course: string | null;
   profileUrl: string | null;
   hallTicketUrl: string | null;
+  address: string | null;
 };
 
 export async function getStudentData(): Promise<StudentData | null> {
@@ -17,7 +18,7 @@ export async function getStudentData(): Promise<StudentData | null> {
     const { data, error } = await supabase
       .from('user2')
       .select(
-        'student_name, course, profile_url, hallticket_url'
+        'student_name, course, profile_url, hallticket_url, address'
       )
       .limit(1);
 
@@ -39,6 +40,7 @@ export async function getStudentData(): Promise<StudentData | null> {
       course: student.course,
       profileUrl: student.profile_url,
       hallTicketUrl: student.hallticket_url,
+      address: student.address,
     };
   } catch (e) {
     console.error('Unexpected error fetching student data:', e);
