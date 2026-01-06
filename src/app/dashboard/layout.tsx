@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -31,13 +32,13 @@ export default function DashboardLayout({
             </Link>
           </Button>
           <Button asChild variant="secondary" className="w-full justify-start rounded-none">
-            <Link href="#">
+            <Link href="/dashboard/hall-ticket">
               <Ticket className="mr-2 h-4 w-4" />
               Hall Ticket
             </Link>
           </Button>
            <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href="#">
+            <Link href="/dashboard/profile">
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>
@@ -64,7 +65,7 @@ export default function DashboardLayout({
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Button>
-            <div className="h-8 w-8 bg-gray-300">
+            <div className="h-8 w-8 bg-gray-300 rounded-full overflow-hidden">
                 <Image src="https://picsum.photos/seed/student-profile/100/100" alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
             </div>
           </div>
