@@ -32,6 +32,14 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
     { href: '#', label: 'Upload Section' },
   ];
 
+  const examLinks = [
+    { href: '#', label: 'Registration' },
+    { href: '#', label: 'Additional Exam Fee' },
+    { href: `/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`, label: 'Hall Admit Card' },
+    { href: '#', label: 'Grade Card/Result' },
+    { href: '#', label: 'Apply for EXIT (as per NEP)' },
+  ];
+
   return (
     <div className="flex min-h-screen w-full bg-background">
        <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white sm:flex">
@@ -94,8 +102,18 @@ function DashboardNavContent({ children }: { children: React.ReactNode }) {
                 />
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="pl-4">
-              {/* Add Examination links here */}
+            <CollapsibleContent className="space-y-1 pl-4">
+              {examLinks.map((link) => (
+                <Button
+                  asChild
+                  key={link.label}
+                  variant={pathname === link.href ? 'secondary' : 'ghost'}
+                  className="w-full justify-start rounded-none text-muted-foreground hover:text-primary"
+                  disabled={!enrolmentNumber && link.href.includes('enrolment_number')}
+                >
+                  <Link href={enrolmentNumber ? link.href : '#'}>{link.label}</Link>
+                </Button>
+              ))}
             </CollapsibleContent>
           </Collapsible>
           
