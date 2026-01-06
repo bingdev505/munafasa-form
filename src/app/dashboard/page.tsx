@@ -1,4 +1,6 @@
 
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -7,22 +9,40 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Link from 'next/link';
 import { getStudentData } from '@/app/actions/get-student-data';
-import { notFound } from 'next/navigation';
+import { useSearchParams, notFound } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-interface DashboardPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const enrolmentNumber = searchParams.get('enrolment_number');
+  const [courseName, setCourseName] = useState('Your Course');
+  const [isLoading, setIsLoading] = useState(true);
 
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const enrolmentNumber = searchParams.enrolment_number as string;
+  useEffect(() => {
+    async function fetchStudentCourse() {
+      if (enrolmentNumber) {
+        const studentData = await getStudentData(enrolmentNumber);
+        if (studentData?.course) {
+          setCourseName(studentData.course);
+        }
+      }
+      setIsLoading(false);
+    }
+
+    if (enrolmentNumber) {
+      fetchStudentCourse();
+    } else {
+      setIsLoading(false);
+    }
+  }, [enrolmentNumber]);
   
   if (!enrolmentNumber) {
     return notFound();
   }
 
-  const studentData = await getStudentData(enrolmentNumber);
-  const courseName = studentData?.course || 'Your Course';
-
+  if (isLoading) {
+      return <div>Loading...</div>
+  }
 
   return (
     <div className="grid gap-6">
