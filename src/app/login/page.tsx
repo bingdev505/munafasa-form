@@ -67,7 +67,7 @@ export default function LoginPage() {
               data-ai-hint="university logo"
               className="mb-2"
             />
-          <p className="font-semibold text-lg">Student Portal</p>
+          <p className="font-semibold text-lg">Samarth eGov</p>
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="mb-6">

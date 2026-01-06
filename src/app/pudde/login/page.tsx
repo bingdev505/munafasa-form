@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -68,7 +67,7 @@ export default function SamarthLoginPage() {
             data-ai-hint="university logo"
             className="mb-2"
           />
-          <p className="font-semibold text-lg">Student Portal</p>
+          <p className="font-semibold text-lg">Samarth eGov</p>
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="mb-6">
