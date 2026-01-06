@@ -12,7 +12,7 @@ import Image from 'next/image';
 const studentData = {
   name: 'Rakesh Sharma',
   course: 'Bachelor of Computer Applications (BCA)',
-  profileUrl: 'https://your-google-drive-link-for-profile-photo',
+  profileUrl: 'https://picsum.photos/seed/1/120/120',
   enrolmentNumber: '123456789',
   fatherName: 'Suresh Sharma',
   address: '123, ABC Colony, New Delhi, India'

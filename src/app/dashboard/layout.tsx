@@ -66,7 +66,7 @@ export default function DashboardLayout({
               <span className="sr-only">Notifications</span>
             </Button>
             <div className="h-8 w-8 bg-gray-300 rounded-full overflow-hidden">
-                <Image src="https://your-google-drive-link-for-profile-photo" alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
+                <Image src="https://picsum.photos/seed/1/32/32" alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
             </div>
           </div>
         </header>
