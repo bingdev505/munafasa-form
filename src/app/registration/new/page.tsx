@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -24,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { registerStudent } from '@/app/actions/register-student';
 import { Loader2, UploadCloud, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -126,74 +124,15 @@ export default function NewRegistrationPage() {
       }
   }
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
-  }
-
   async function onSubmit(data: FormSchemaType) {
     setIsSubmitting(true);
-    const formData = new FormData();
-    
-    // Append all non-file data
-    Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'profile_photo' && key !== 'hall_ticket') {
-            if (typeof value === 'object' && value !== null) {
-                Object.entries(value).forEach(([subKey, subValue]) => {
-                    formData.append(`${key}_${subKey}`, subValue as string);
-                });
-            } else if (value) {
-                formData.append(key, value);
-            }
-        }
-    });
-
-    try {
-        if (data.profile_photo) {
-            const base64photo = await fileToBase64(data.profile_photo);
-            formData.append('profile_photo', base64photo);
-        }
-
-        if (data.hall_ticket) {
-            const base64hallticket = await fileToBase64(data.hall_ticket);
-            formData.append('hall_ticket', base64hallticket);
-        }
-
-        const result = await registerStudent(formData);
-        handleResult(result);
-
-    } catch (error) {
-        console.error("File processing error:", error);
-        toast({
-            variant: 'destructive',
-            title: 'File Error',
-            description: 'There was an error processing your files.',
-        });
-        setIsSubmitting(false);
-    }
-  }
-
-  const handleResult = (result: { success: boolean; message: string; data?: any; }) => {
-    if (result.success) {
-      toast({
-        title: 'Registration Successful',
-        description: 'You have been registered. You can now log in.',
-      });
-      router.push('/login');
-    } else {
-      toast({
+    toast({
         variant: 'destructive',
-        title: 'Registration Failed',
-        description: result.message,
-      });
-    }
+        title: 'Functionality Removed',
+        description: 'The registration action is currently disabled due to an error. I will fix this in the next step.',
+    });
     setIsSubmitting(false);
-  };
-
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
@@ -420,3 +359,5 @@ export default function NewRegistrationPage() {
     </main>
   );
 }
+
+    
