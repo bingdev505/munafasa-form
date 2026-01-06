@@ -75,7 +75,7 @@ export default function LoginPage() {
             
             <div className="flex items-center justify-center space-x-4 mt-4">
               <Button asChild variant="default" className="bg-green-600 hover:bg-green-700 rounded-none">
-                <Link href="#">New Registration</Link>
+                <Link href="/registration/new">New Registration</Link>
               </Button>
               <Button asChild variant="outline" className="rounded-none">
                 <Link href="#">Reset Password</Link>
