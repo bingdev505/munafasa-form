@@ -12,8 +12,13 @@ import Link from 'next/link';
 import { getStudentData } from '@/app/actions/get-student-data';
 import { notFound } from 'next/navigation';
 
-export default async function HallTicketPage() {
-    const studentData = await getStudentData();
+interface HallTicketPageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default async function HallTicketPage({ searchParams }: HallTicketPageProps) {
+    const enrolmentNumber = searchParams.enrolment_number as string;
+    const studentData = await getStudentData(enrolmentNumber);
 
     if (!studentData || !studentData.hallTicketUrl) {
         return (

@@ -20,16 +20,23 @@ export default function LoginPage() {
 
   const handleLogin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real application, you would perform authentication here.
-    // For now, we will just redirect to the dashboard.
-    router.push('/dashboard');
+    const formData = new FormData(event.currentTarget);
+    const enrolmentNumber = formData.get('enrolment-number') as string;
+    
+    if (enrolmentNumber) {
+        router.push(`/dashboard?enrolment_number=${enrolmentNumber}`);
+    } else {
+        // Handle case where enrolment number is not entered
+        // For now, we'll just log an error, but you might want to show a message to the user.
+        console.error("Enrolment number is required.");
+    }
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
         <div className="border-b-4 border-blue-600"></div>
-        <CardHeader className="items-center text-center py-6">
+        <CardHeader className="items-center text-center py-8">
           <Image
             src="/logo.png"
             alt="University Logo"
@@ -49,6 +56,7 @@ export default function LoginPage() {
               <Label htmlFor="enrolment-number">Username</Label>
               <Input
                 id="enrolment-number"
+                name="enrolment-number"
                 placeholder="Enrolment Number"
                 required
                 className="rounded-none"

@@ -10,12 +10,15 @@ import { getStudentData } from '@/app/actions/get-student-data';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
+interface ProfilePageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-export default async function ProfilePage() {
-  const studentData = await getStudentData();
+export default async function ProfilePage({ searchParams }: ProfilePageProps) {
+  const enrolmentNumber = searchParams.enrolment_number as string;
+  const studentData = await getStudentData(enrolmentNumber);
 
   if (!studentData) {
-    // Or render a "not found" message
     return notFound();
   }
 

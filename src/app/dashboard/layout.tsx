@@ -6,20 +6,33 @@ import { Bell, Home, Ticket, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { getStudentData } from '@/app/actions/get-student-data';
 
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
 export default async function DashboardLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  const studentData = await getStudentData();
+  searchParams,
+}: DashboardLayoutProps) {
+  const enrolmentNumber = searchParams.enrolment_number as string;
+  const studentData = await getStudentData(enrolmentNumber);
 
   const profileImageUrl = studentData?.profileUrl || "https://picsum.photos/seed/1/32/32";
+  
+  // Pass studentData to children that are server components
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      // @ts-ignore
+      return React.cloneElement(child, { studentData });
+    }
+    return child;
+  });
 
   return (
     <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
       <aside className="fixed hidden h-screen w-64 flex-col border-r bg-white dark:bg-gray-800 sm:flex">
-        <div className="flex items-center border-b px-6 py-4">
+        <div className="flex items-center border-b px-6 py-8">
            <Link href="/dashboard">
             <Image 
                 src="/logo.png" 
@@ -32,19 +45,19 @@ export default async function DashboardLayout({
         </div>
         <nav className="flex-1 space-y-2 p-4">
           <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href="/dashboard">
+            <Link href={`/dashboard?enrolment_number=${enrolmentNumber}`}>
               <Home className="mr-2 h-4 w-4" />
               Dashboard
             </Link>
           </Button>
           <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href="/dashboard/hall-ticket">
+            <Link href={`/dashboard/hall-ticket?enrolment_number=${enrolmentNumber}`}>
               <Ticket className="mr-2 h-4 w-4" />
               Hall Ticket
             </Link>
           </Button>
            <Button asChild variant="ghost" className="w-full justify-start rounded-none">
-            <Link href="/dashboard/profile">
+            <Link href={`/dashboard/profile?enrolment_number=${enrolmentNumber}`}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </Link>
@@ -76,7 +89,7 @@ export default async function DashboardLayout({
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{childrenWithProps}</main>
       </div>
     </div>
   );

@@ -11,36 +11,43 @@ export type StudentData = {
   address: string | null;
 };
 
-export async function getStudentData(): Promise<StudentData | null> {
+export async function getStudentData(enrolmentNumber: string): Promise<StudentData | null> {
+  if (!enrolmentNumber) {
+    return null;
+  }
+
   try {
-    // Fetch the first student from the table to demonstrate functionality.
-    // In a real app, you would identify the user based on their login session.
+    // In a real app, you would have a unique identifier. We assume 'student_name' is being used as one for now.
+    // Ideally this would be an 'enrolment_number' column. Let's use 'student_name' as a stand-in.
     const { data, error } = await supabase
       .from('user2')
       .select(
         'student_name, course, profile_url, hallticket_url, address'
       )
-      .limit(1);
+      .eq('student_name', enrolmentNumber) // Assuming the enrolment number is stored in the 'student_name' column for this example
+      .single();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        console.log(`No student found with enrolment number: ${enrolmentNumber}`);
+        return null;
+      }
       console.error('Error fetching student data:', error);
       return null;
     }
 
-    const student = data?.[0];
-
-    if (!student) {
-      console.log('No student data found in user2 table.');
+    if (!data) {
+      console.log(`No student data found for enrolment number: ${enrolmentNumber}`);
       return null;
     }
 
     // Map database columns to our desired object keys
     return {
-      name: student.student_name,
-      course: student.course,
-      profileUrl: student.profile_url,
-      hallTicketUrl: student.hallticket_url,
-      address: student.address,
+      name: data.student_name,
+      course: data.course,
+      profileUrl: data.profile_url,
+      hallTicketUrl: data.hallticket_url,
+      address: data.address,
     };
   } catch (e) {
     console.error('Unexpected error fetching student data:', e);
