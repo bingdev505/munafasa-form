@@ -12,8 +12,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { FormEvent } from 'react';
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // In a real application, you would perform authentication here.
+    // For now, we will just redirect to the dashboard.
+    router.push('/dashboard');
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md shadow-lg overflow-hidden rounded-none">
@@ -33,7 +44,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <CardTitle className="text-xl">Sign In</CardTitle>
           </div>
-          <form className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="enrolment-number">Username</Label>
               <Input
