@@ -43,19 +43,15 @@ export default async function ProfilePage() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-            <h3 className="mb-4 text-lg font-semibold border-b pb-2">Personal Information</h3>
+            <h3 className="mb-4 text-lg font-semibold border-b pb-2">Student Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                    <p className="font-semibold text-gray-500">Enrolment Number</p>
-                    <p className="text-gray-800">{studentData.enrolmentNumber || 'N/A'}</p>
+                    <p className="font-semibold text-gray-500">Course</p>
+                    <p className="text-gray-800">{studentData.course || 'N/A'}</p>
                 </div>
                  <div>
-                    <p className="font-semibold text-gray-500">Father's Name</p>
-                    <p className="text-gray-800">{studentData.fatherName || 'N/A'}</p>
-                </div>
-                 <div>
-                    <p className="font-semibold text-gray-500">Address</p>
-                    <p className="text-gray-800">{studentData.address || 'N/A'}</p>
+                    <p className="font-semibold text-gray-500">Student Name</p>
+                    <p className="text-gray-800">{studentData.name || 'N/A'}</p>
                 </div>
             </div>
         </CardContent>

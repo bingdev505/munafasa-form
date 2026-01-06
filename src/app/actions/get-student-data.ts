@@ -1,3 +1,4 @@
+
 'use server';
 
 import { supabase } from '@/utils/supabaseClient';
@@ -6,9 +7,6 @@ export type StudentData = {
   name: string | null;
   course: string | null;
   profileUrl: string | null;
-  enrolmentNumber: string | null;
-  fatherName: string | null;
-  address: string | null;
   hallTicketUrl: string | null;
 };
 
@@ -19,7 +17,7 @@ export async function getStudentData(): Promise<StudentData | null> {
     const { data, error } = await supabase
       .from('user2')
       .select(
-        'student_name, course, profile_url, enrolment_number, father_name, address, hallticket_url'
+        'student_name, course, profile_url, hallticket_url'
       )
       .limit(1);
 
@@ -40,9 +38,6 @@ export async function getStudentData(): Promise<StudentData | null> {
       name: student.student_name,
       course: student.course,
       profileUrl: student.profile_url,
-      enrolmentNumber: student.enrolment_number,
-      fatherName: student.father_name,
-      address: student.address,
       hallTicketUrl: student.hallticket_url,
     };
   } catch (e) {
