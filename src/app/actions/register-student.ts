@@ -33,6 +33,7 @@ const RegistrationSchema = z.object({
   correspondence_address: AddressSchema,
   permanent_address: AddressSchema,
   profile_photo: z.string().optional(),
+  hall_ticket: z.string().optional(),
   enrolment_number: z.string().min(1, 'Enrolment number is required'),
 });
 
@@ -68,15 +69,25 @@ export async function registerStudent(formData: FormData) {
     return { success: false, message: 'Invalid form data.', errors: parsed.error.flatten().fieldErrors };
   }
   
-  const { profile_photo, ...studentData } = parsed.data;
+  const { profile_photo, hall_ticket, ...studentData } = parsed.data;
 
   try {
     let profileUrl: string | null = null;
     if (profile_photo) {
       const uploadResult = await cloudinary.uploader.upload(profile_photo, {
         folder: 'student_profiles',
+        resource_type: 'image',
       });
       profileUrl = uploadResult.secure_url;
+    }
+    
+    let hallTicketUrl: string | null = null;
+    if (hall_ticket) {
+      const uploadResult = await cloudinary.uploader.upload(hall_ticket, {
+        folder: 'hall_tickets',
+        resource_type: 'auto',
+      });
+      hallTicketUrl = uploadResult.secure_url;
     }
 
     const { data: dbData, error } = await supabase
@@ -105,6 +116,7 @@ export async function registerStudent(formData: FormData) {
           permanent_pincode: studentData.permanent_address.pincode,
           permanent_country: studentData.permanent_address.country,
           profile_url: profileUrl,
+          hallticket_url: hallTicketUrl,
           enrolment_number: studentData.enrolment_number
         },
       ])
@@ -122,4 +134,3 @@ export async function registerStudent(formData: FormData) {
     return { success: false, message: `An unexpected error occurred: ${errorMessage}` };
   }
 }
-

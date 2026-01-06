@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { registerStudent } from '@/app/actions/register-student';
-import { Loader2, UploadCloud } from 'lucide-react';
+import { Loader2, UploadCloud, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,6 +51,7 @@ const FormSchema = z.object({
   correspondence_address: AddressSchema,
   permanent_address: AddressSchema,
   profile_photo: z.any().optional(),
+  hall_ticket: z.any().optional(),
   enrolment_number: z.string().min(1, "Enrolment number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -65,7 +66,8 @@ export default function NewRegistrationPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [hallTicketFile, setHallTicketFile] = useState<File | null>(null);
   const [sameAsCorrespondence, setSameAsCorrespondence] = useState(false);
 
   const form = useForm<FormSchemaType>({
@@ -85,17 +87,31 @@ export default function NewRegistrationPage() {
     },
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onPhotoDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       form.setValue('profile_photo', file);
-      setPreview(URL.createObjectURL(file));
+      setPhotoPreview(URL.createObjectURL(file));
     }
   }, [form]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const onHallTicketDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      form.setValue('hall_ticket', file);
+      setHallTicketFile(file);
+    }
+  }, [form]);
+
+  const { getRootProps: getPhotoRootProps, getInputProps: getPhotoInputProps, isDragActive: isPhotoDragActive } = useDropzone({
+    onDrop: onPhotoDrop,
     accept: { 'image/*': ['.jpeg', '.png'] },
+    maxFiles: 1,
+  });
+
+  const { getRootProps: getHallTicketRootProps, getInputProps: getHallTicketInputProps, isDragActive: isHallTicketDragActive } = useDropzone({
+    onDrop: onHallTicketDrop,
+    accept: { 'application/pdf': ['.pdf'] },
     maxFiles: 1,
   });
   
@@ -110,33 +126,54 @@ export default function NewRegistrationPage() {
       }
   }
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+    });
+  }
+
   async function onSubmit(data: FormSchemaType) {
     setIsSubmitting(true);
     const formData = new FormData();
     
+    // Append all non-file data
     Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === 'object' && value !== null && !(value instanceof File)) {
-            Object.entries(value).forEach(([subKey, subValue]) => {
-                formData.append(`${key}_${subKey}`, subValue as string);
-            });
-        } else if (value) {
-            formData.append(key, value);
+        if (key !== 'profile_photo' && key !== 'hall_ticket') {
+            if (typeof value === 'object' && value !== null) {
+                Object.entries(value).forEach(([subKey, subValue]) => {
+                    formData.append(`${key}_${subKey}`, subValue as string);
+                });
+            } else if (value) {
+                formData.append(key, value);
+            }
         }
     });
 
-    if (data.profile_photo) {
-        const reader = new FileReader();
-        reader.readAsDataURL(data.profile_photo);
-        reader.onloadend = async () => {
-            const base64data = reader.result;
-            formData.set('profile_photo', base64data as string);
-            
-            const result = await registerStudent(formData);
-            handleResult(result);
-        };
-    } else {
+    try {
+        if (data.profile_photo) {
+            const base64photo = await fileToBase64(data.profile_photo);
+            formData.append('profile_photo', base64photo);
+        }
+
+        if (data.hall_ticket) {
+            const base64hallticket = await fileToBase64(data.hall_ticket);
+            formData.append('hall_ticket', base64hallticket);
+        }
+
         const result = await registerStudent(formData);
         handleResult(result);
+
+    } catch (error) {
+        console.error("File processing error:", error);
+        toast({
+            variant: 'destructive',
+            title: 'File Error',
+            description: 'There was an error processing your files.',
+        });
+        setIsSubmitting(false);
     }
   }
 
@@ -230,23 +267,46 @@ export default function NewRegistrationPage() {
                 </div>
             </section>
 
-             {/* Profile Photo */}
+             {/* File Uploads */}
             <section>
-                 <h3 className="text-lg font-semibold border-b pb-2 mb-4">Profile Photo</h3>
-                <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
-                    <input {...getInputProps()} />
-                    {preview ? (
-                        <div className="flex flex-col items-center gap-2">
-                             <Image src={preview} alt="Profile preview" width={120} height={120} className="h-32 w-32 object-cover rounded-full" onLoad={() => URL.revokeObjectURL(preview)} />
-                             <p className="text-sm text-muted-foreground">Click or drag to change photo</p>
+                 <h3 className="text-lg font-semibold border-b pb-2 mb-4">Upload Documents</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <Label>Profile Photo</Label>
+                        <div {...getPhotoRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
+                            <input {...getPhotoInputProps()} />
+                            {photoPreview ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <Image src={photoPreview} alt="Profile preview" width={120} height={120} className="h-32 w-32 object-cover rounded-full" onLoad={() => URL.revokeObjectURL(photoPreview)} />
+                                    <p className="text-sm text-muted-foreground">Click or drag to change photo</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                    <UploadCloud className="h-10 w-10" />
+                                    {isPhotoDragActive ? <p>Drop the photo here...</p> : <p>Drag & drop a photo, or click to select</p>}
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <UploadCloud className="h-10 w-10" />
-                            {isDragActive ? <p>Drop the file here...</p> : <p>Drag & drop a photo here, or click to select</p>}
+                    </div>
+                     <div>
+                        <Label>Hall Ticket (PDF)</Label>
+                        <div {...getHallTicketRootProps()} className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary">
+                            <input {...getHallTicketInputProps()} />
+                            {hallTicketFile ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <FileText className="h-16 w-16 text-primary" />
+                                    <p className="text-sm font-medium">{hallTicketFile.name}</p>
+                                    <p className="text-sm text-muted-foreground">Click or drag to change PDF</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                    <UploadCloud className="h-10 w-10" />
+                                    {isHallTicketDragActive ? <p>Drop the PDF here...</p> : <p>Drag & drop a PDF, or click to select</p>}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                 </div>
             </section>
 
             {/* Correspondence Address */}
