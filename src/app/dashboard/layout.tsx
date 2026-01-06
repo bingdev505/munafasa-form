@@ -24,19 +24,19 @@ export default function DashboardLayout({
           </Link>
         </div>
         <nav className="flex-1 space-y-2 p-4">
-          <Button asChild variant="ghost" className="w-full justify-start">
+          <Button asChild variant="ghost" className="w-full justify-start rounded-none">
             <Link href="/dashboard">
               <Home className="mr-2 h-4 w-4" />
               Dashboard
             </Link>
           </Button>
-          <Button asChild variant="secondary" className="w-full justify-start">
+          <Button asChild variant="secondary" className="w-full justify-start rounded-none">
             <Link href="#">
               <Ticket className="mr-2 h-4 w-4" />
               Hall Ticket
             </Link>
           </Button>
-           <Button asChild variant="ghost" className="w-full justify-start">
+           <Button asChild variant="ghost" className="w-full justify-start rounded-none">
             <Link href="#">
               <User className="mr-2 h-4 w-4" />
               Profile
@@ -44,7 +44,7 @@ export default function DashboardLayout({
           </Button>
         </nav>
         <div className="mt-auto p-4">
-            <Button asChild variant="ghost" className="w-full justify-start">
+            <Button asChild variant="ghost" className="w-full justify-start rounded-none">
                 <Link href="/login">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
@@ -60,12 +60,12 @@ export default function DashboardLayout({
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-none">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Button>
-            <div className="h-8 w-8 rounded-full bg-gray-300">
-                <Image src="https://picsum.photos/seed/student-profile/100/100" alt="Student Profile" width={32} height={32} className="rounded-full" data-ai-hint="profile person" />
+            <div className="h-8 w-8 bg-gray-300">
+                <Image src="https://picsum.photos/seed/student-profile/100/100" alt="Student Profile" width={32} height={32} className="" data-ai-hint="profile person" />
             </div>
           </div>
         </header>
