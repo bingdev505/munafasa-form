@@ -20,9 +20,9 @@ import {
 import { getStudentData, StudentData } from '@/app/actions/get-student-data';
 import { useSearchParams, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function HallTicketPage() {
+function HallTicketContent() {
     const searchParams = useSearchParams();
     const enrolmentNumber = searchParams.get('enrolment_number');
     const [studentData, setStudentData] = useState<StudentData | null>(null);
@@ -110,4 +110,12 @@ export default function HallTicketPage() {
         </Card>
     </div>
   );
+}
+
+export default function HallTicketPage() {
+    return (
+        <Suspense fallback={<div>Loading hall ticket...</div>}>
+            <HallTicketContent />
+        </Suspense>
+    )
 }
