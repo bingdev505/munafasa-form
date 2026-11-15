@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import Link from 'next/link';
-import { Users, UserPlus, ClipboardList, Settings } from 'lucide-react';
+import { Users, ClipboardList, Settings } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -29,8 +29,8 @@ export default function HomePage() {
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="space-y-4">
-            <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
-              <Link href="/samarth" className="flex items-center justify-center gap-2">
+            <Button asChild className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg">
+              <Link href="/attend" className="flex items-center justify-center gap-2">
                 <ClipboardList className="h-5 w-5" />
                 Submit Attendance
               </Link>
