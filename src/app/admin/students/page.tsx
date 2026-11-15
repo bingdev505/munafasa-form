@@ -57,6 +57,8 @@ const CLASSES = [
   "Muthavval Sani",
   "Thakassus Fiqh",
   "Thakassus Adab",
+  "Mukhthasar",
+  "7th Class",
 ];
 
 export default function StudentsPage() {
