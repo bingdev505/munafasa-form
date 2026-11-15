@@ -66,6 +66,8 @@ export default function AttendancePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [submittedStudentId, setSubmittedStudentId] = useState<string | null>(null);
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [otherReachTime, setOtherReachTime] = useState("");
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -338,9 +340,18 @@ export default function AttendancePage() {
                 control={form.control}
                 render={({ field }) => (
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      if (value === "other") {
+                        setShowOtherInput(true);
+                        field.onChange("");
+                      } else {
+                        setShowOtherInput(false);
+                        setOtherReachTime("");
+                        field.onChange(value);
+                      }
+                    }}
                     defaultValue={field.value}
-                    value={field.value || ""}
+                    value={showOtherInput ? "other" : (field.value || "")}
                   >
                     <SelectTrigger id="when_reach">
                       <SelectValue placeholder="Select a time" />
@@ -349,10 +360,27 @@ export default function AttendancePage() {
                       <SelectItem value="16 Monday Rathri">16 Monday Rathri</SelectItem>
                       <SelectItem value="17 Chovva Nasta">17 Chovva Nasta</SelectItem>
                       <SelectItem value="17 Chovva Nasta Venda">17 Chovva Nasta Venda</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
               />
+              {showOtherInput && (
+                <div className="mt-2">
+                  <Input
+                    placeholder="Enter when you will reach (max 100 characters)"
+                    maxLength={100}
+                    value={otherReachTime}
+                    onChange={(e) => {
+                      setOtherReachTime(e.target.value);
+                      form.setValue("when_reach", e.target.value);
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {otherReachTime.length}/100 characters
+                  </p>
+                </div>
+              )}
               {form.formState.errors.when_reach && (
                 <p className="text-sm text-red-600">
                   {form.formState.errors.when_reach.message}
