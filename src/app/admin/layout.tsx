@@ -15,9 +15,9 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const navLinks = [
+    { href: '/admin/students', label: 'Students' },
     { href: '/admin/attendance', label: 'Attendance' },
     { href: '/admin/registrations', label: 'Registrations' },
-    { href: '/upload-test', label: 'Upload Test' },
     { href: '/', label: 'Main Site' },
   ];
 
