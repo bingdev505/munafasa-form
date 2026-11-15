@@ -9,8 +9,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import Link from 'next/link';
-import Image from 'next/image';
-import { GraduationCap, UserPlus, LogIn } from 'lucide-react';
+import { Users, UserPlus, ClipboardList, Settings } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -19,35 +18,35 @@ export default function HomePage() {
         <div className="border-b-4 border-blue-600"></div>
         <CardHeader className="items-center text-center py-8">
           <div className="bg-blue-600 p-4 rounded-full mb-4">
-            <GraduationCap className="h-12 w-12 text-white" />
+            <Users className="h-12 w-12 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-800">
-            Student Portal
+            Meeting Registration
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
-            Welcome to the Student Registration & Management System
+            Register your attendance and family members for the event
           </CardDescription>
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="space-y-4">
             <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
-              <Link href="/login" className="flex items-center justify-center gap-2">
-                <LogIn className="h-5 w-5" />
-                Login
+              <Link href="/samarth" className="flex items-center justify-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Submit Attendance
               </Link>
             </Button>
             
-            <Button asChild variant="outline" className="w-full h-12 text-lg border-green-600 text-green-600 hover:bg-green-50">
-              <Link href="/registration/new" className="flex items-center justify-center gap-2">
-                <UserPlus className="h-5 w-5" />
-                New Registration
+            <Button asChild variant="outline" className="w-full h-12 text-lg border-blue-600 text-blue-600 hover:bg-blue-50">
+              <Link href="/admin" className="flex items-center justify-center gap-2">
+                <Settings className="h-5 w-5" />
+                Admin Panel
               </Link>
             </Button>
           </div>
           
           <div className="mt-8 pt-6 border-t text-center">
             <p className="text-sm text-gray-500">
-              Need help? Contact your institution administrator.
+              For assistance, please contact the event organizer.
             </p>
           </div>
         </CardContent>
