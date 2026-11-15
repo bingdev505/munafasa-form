@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CldUploadWidget } from 'next-cloudinary';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,9 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UploadCloud, FileText } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { registerStudent } from '@/app/actions/register-student';
 
@@ -51,8 +49,8 @@ const FormSchema = z.object({
   mobile_number: z.string().min(1, 'Mobile number is required'),
   correspondence_address: AddressSchema,
   permanent_address: AddressSchema,
-  profile_url: z.string().url().optional().or(z.literal('')),
-  hall_ticket_url: z.string().url().optional().or(z.literal('')),
+  profile_url: z.string().optional(),
+  hall_ticket_url: z.string().optional(),
   enrolment_number: z.string().min(1, 'Enrolment number is required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
@@ -67,8 +65,6 @@ export default function NewRegistrationPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState('');
-  const [hallTicketUrl, setHallTicketUrl] = useState('');
   const [sameAsCorrespondence, setSameAsCorrespondence] = useState(false);
 
   const form = useForm<FormSchemaType>({
@@ -138,9 +134,9 @@ export default function NewRegistrationPage() {
       }
     });
 
-    // Append URLs from state
-    formData.append('profile_url', photoUrl);
-    formData.append('hall_ticket_url', hallTicketUrl);
+    // Append empty URLs (file uploads removed)
+    formData.append('profile_url', '');
+    formData.append('hall_ticket_url', '');
 
     // Append stringified address objects
     formData.append(
@@ -175,8 +171,6 @@ export default function NewRegistrationPage() {
     setIsSubmitting(false);
   }
 
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-4xl shadow-lg rounded-none">
@@ -185,11 +179,6 @@ export default function NewRegistrationPage() {
           <CardDescription>
             Fill out the form below to create your student account.
           </CardDescription>
-           {!uploadPreset && (
-                <CardDescription className="text-red-500 font-semibold pt-2">
-                    Warning: `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` is not set in your .env file. Please set it to your unsigned upload preset from Cloudinary for uploads to work.
-                </CardDescription>
-            )}
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -291,102 +280,6 @@ export default function NewRegistrationPage() {
                 <div>
                   <Label htmlFor="phone">Phone (Optional)</Label>
                   <Input id="phone" {...form.register('phone')} />
-                </div>
-              </div>
-            </section>
-
-            {/* File Uploads */}
-            <section>
-              <h3 className="text-lg font-semibold border-b pb-2 mb-4">
-                Upload Documents
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Profile Photo Upload */}
-                <div>
-                  <Label>Profile Photo (Optional)</Label>
-                  <CldUploadWidget
-                    uploadPreset={uploadPreset}
-                    onSuccess={(result) => {
-                      if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
-                        const info = result.info as { secure_url: string };
-                        setPhotoUrl(info.secure_url);
-                        form.setValue('profile_url', info.secure_url);
-                      }
-                    }}
-                  >
-                    {({ open }) => (
-                      <div
-                        className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary"
-                        onClick={() => open()}
-                      >
-                        {photoUrl ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <Image
-                              src={photoUrl}
-                              alt="Profile preview"
-                              width={120}
-                              height={120}
-                              className="h-32 w-32 object-cover rounded-full"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                              Click to change photo
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <UploadCloud className="h-10 w-10" />
-                            <p>Drag & drop a photo, or click to select</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CldUploadWidget>
-                </div>
-
-                {/* Hall Ticket Upload */}
-                <div>
-                  <Label>Hall Ticket (PDF, Optional)</Label>
-                  <CldUploadWidget
-                    uploadPreset={uploadPreset}
-                     onSuccess={(result) => {
-                      if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
-                        const info = result.info as { secure_url: string };
-                        setHallTicketUrl(info.secure_url);
-                        form.setValue('hall_ticket_url', info.secure_url);
-                      }
-                    }}
-                  >
-                    {({ open }) => (
-                      <div
-                        className="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-primary"
-                        onClick={() => open()}
-                      >
-                        {hallTicketUrl ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <FileText className="h-16 w-16 text-primary" />
-                            <p className="text-sm font-medium">
-                              Hall Ticket Uploaded
-                            </p>
-                            <Link
-                              href={hallTicketUrl}
-                              target="_blank"
-                              className="text-xs text-blue-500 hover:underline"
-                            >
-                              View PDF
-                            </Link>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Click to change PDF
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <UploadCloud className="h-10 w-10" />
-                            <p>Drag & drop a PDF, or click to select</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CldUploadWidget>
                 </div>
               </div>
             </section>
@@ -578,7 +471,7 @@ export default function NewRegistrationPage() {
               <Button variant="outline" asChild>
                 <Link href="/login">Cancel</Link>
               </Button>
-              <Button type="submit" disabled={isSubmitting || !uploadPreset}>
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
