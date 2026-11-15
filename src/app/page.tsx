@@ -54,6 +54,12 @@ type FormData = z.infer<typeof FormSchema>;
 
 const LOCAL_STORAGE_KEY = 'attendance_submitted_student_id';
 
+const REACH_TIME_OPTIONS = [
+  "16 Monday Rathri",
+  "17 Chovva Nasta",
+  "17 Chovva Nasta Venda",
+];
+
 export default function AttendancePage() {
   const [classData, setClassData] = useState<ClassData>({});
   const [studentsInClass, setStudentsInClass] = useState<Student[]>([]);
@@ -116,22 +122,41 @@ export default function AttendancePage() {
     if (student) {
         const hasSubmitted = student.when_reach || student.male || student.female;
         if(hasSubmitted) {
+            const savedReachTime = (student.when_reach || "").trim();
+            const isCustomReachTime =
+              savedReachTime !== "" && !REACH_TIME_OPTIONS.includes(savedReachTime);
             form.setValue("male", student.male || 0);
             form.setValue("female", student.female || 0);
-            form.setValue("when_reach", student.when_reach || "");
+            form.setValue("when_reach", savedReachTime);
+            setShowOtherInput(isCustomReachTime);
+            setOtherReachTime(isCustomReachTime ? savedReachTime : "");
             setIsEditing(true);
         } else {
             form.setValue("male", 0);
             form.setValue("female", 0);
             form.setValue("when_reach", "");
+            setShowOtherInput(false);
+            setOtherReachTime("");
             setIsEditing(false);
         }
     } else {
+        setShowOtherInput(false);
+        setOtherReachTime("");
         setIsEditing(false);
     }
   }, [selectedStudentId, studentsInClass, form]);
 
   const onSubmit = async (data: FormData) => {
+    const reachTime = (data.when_reach || "").trim();
+
+    if (showOtherInput && reachTime === "") {
+      form.setError("when_reach", {
+        type: "manual",
+        message: "Please type when you will reach.",
+      });
+      return;
+    }
+
     setIsPending(true);
     setSubmissionStatus(null);
 
@@ -139,7 +164,7 @@ export default function AttendancePage() {
       student_id: data.student,
       number_of_males: data.male || 0,
       number_of_females: data.female || 0,
-      reach_time: data.when_reach || "",
+      reach_time: reachTime,
     };
     
     const result = await submitAttendance(payload);
@@ -162,6 +187,8 @@ export default function AttendancePage() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setSubmittedStudentId(null);
     setSubmissionStatus(null);
+    setShowOtherInput(false);
+    setOtherReachTime("");
     form.reset();
   }
 
@@ -357,9 +384,11 @@ export default function AttendancePage() {
                       <SelectValue placeholder="Select a time" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="16 Monday Rathri">16 Monday Rathri</SelectItem>
-                      <SelectItem value="17 Chovva Nasta">17 Chovva Nasta</SelectItem>
-                      <SelectItem value="17 Chovva Nasta Venda">17 Chovva Nasta Venda</SelectItem>
+                      {REACH_TIME_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -374,6 +403,7 @@ export default function AttendancePage() {
                     onChange={(e) => {
                       setOtherReachTime(e.target.value);
                       form.setValue("when_reach", e.target.value);
+                      form.clearErrors("when_reach");
                     }}
                   />
                   <p className="text-xs text-muted-foreground mt-1">

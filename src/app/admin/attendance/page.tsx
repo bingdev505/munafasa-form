@@ -53,6 +53,15 @@ import { Edit, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SummaryCard from "@/components/SummaryCard";
 
+const KNOWN_REACH_TIMES = [
+  "16 Monday Rathri",
+  "17 Chovva Nasta",
+  "17 Chovva Nasta Venda",
+];
+
+// Sentinel used by the reach-time filter for records with no reach time saved.
+const NO_REACH_TIME = "__no_reach_time__";
+
 const editFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   class: z.string().min(1, "Class is required"),
@@ -108,7 +117,12 @@ export default function AttendanceAdminPage() {
     }
 
     if (reachTimeFilter !== "all") {
-      filtered = filtered.filter((entry) => entry.when_reach === reachTimeFilter);
+      filtered = filtered.filter((entry) => {
+        const label = (entry.when_reach || "").trim();
+        return reachTimeFilter === NO_REACH_TIME
+          ? label === ""
+          : label === reachTimeFilter;
+      });
     }
 
     if (submissionStatusFilter !== "all") {
@@ -135,39 +149,70 @@ export default function AttendanceAdminPage() {
   }, [nameFilter, reachTimeFilter, submissionStatusFilter, registrationStatusFilter, attendance]);
 
   const summaryStats = useMemo(() => {
-    const stats = {
-      totalMales: 0,
-      totalFemales: 0,
-      fullTotal: 0,
-      "16 Monday Rathri_males": 0,
-      "16 Monday Rathri_females": 0,
-      "17 Chovva Nasta_males": 0,
-      "17 Chovva Nasta_females": 0,
-      "17 Chovva Nasta Venda_males": 0,
-      "17 Chovva Nasta Venda_females": 0,
+    type ReachBucket = {
+      label: string;
+      males: number;
+      females: number;
+      entries: number;
+      isCustom: boolean;
     };
+
+    let totalMales = 0;
+    let totalFemales = 0;
+
+    const buckets = new Map<string, ReachBucket>();
+    KNOWN_REACH_TIMES.forEach((label) =>
+      buckets.set(label, {
+        label,
+        males: 0,
+        females: 0,
+        entries: 0,
+        isCustom: false,
+      })
+    );
+
+    const noReachTime = { males: 0, females: 0, entries: 0 };
 
     for (const entry of attendance) {
       const males = entry.male || 0;
       const females = entry.female || 0;
-      stats.totalMales += males;
-      stats.totalFemales += females;
+      totalMales += males;
+      totalFemales += females;
 
-      if (entry.when_reach) {
-        const key_males = `${entry.when_reach}_males` as keyof typeof stats;
-        const key_females = `${entry.when_reach}_females` as keyof typeof stats;
-        if (key_males in stats) {
-          stats[key_males] += males;
+      const label = (entry.when_reach || "").trim();
+
+      if (!label) {
+        // Nothing saved in when_reach: still count it so the cards add up.
+        if (males > 0 || females > 0) {
+          noReachTime.males += males;
+          noReachTime.females += females;
+          noReachTime.entries += 1;
         }
-        if (key_females in stats) {
-          stats[key_females] += females;
-        }
+        continue;
       }
-    }
-    stats.fullTotal = stats.totalMales + stats.totalFemales;
 
-    return stats;
+      const bucket =
+        buckets.get(label) ||
+        { label, males: 0, females: 0, entries: 0, isCustom: true };
+      bucket.males += males;
+      bucket.females += females;
+      bucket.entries += 1;
+      buckets.set(label, bucket);
+    }
+
+    return {
+      totalMales,
+      totalFemales,
+      fullTotal: totalMales + totalFemales,
+      byReachTime: Array.from(buckets.values()),
+      noReachTime,
+    };
   }, [attendance]);
+
+  const reachTimeOptions = useMemo(
+    () => summaryStats.byReachTime.map((bucket) => bucket.label),
+    [summaryStats]
+  );
 
   const downloadCSV = () => {
     const headers = ["ID", "Name", "Class", "Male", "Female", "When Reach", "Registered", "Created At"];
@@ -329,18 +374,19 @@ export default function AttendanceAdminPage() {
         <SummaryCard title="Grand Total" value={summaryStats.fullTotal} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6 no-print">
-        <SummaryCard 
-            title="16 Monday Rathri"
-            value={`M: ${summaryStats["16 Monday Rathri_males"]} | F: ${summaryStats["16 Monday Rathri_females"]}`}
-        />
-        <SummaryCard 
-            title="17 Chovva Nasta"
-            value={`M: ${summaryStats["17 Chovva Nasta_males"]} | F: ${summaryStats["17 Chovva Nasta_females"]}`}
-        />
-        <SummaryCard 
-            title="17 Chovva Nasta Venda"
-            value={`M: ${summaryStats["17 Chovva Nasta Venda_males"]} | F: ${summaryStats["17 Chovva Nasta Venda_females"]}`}
-        />
+        {summaryStats.byReachTime.map((bucket) => (
+          <SummaryCard
+            key={bucket.label}
+            title={bucket.isCustom ? `${bucket.label} (Other)` : bucket.label}
+            value={`M: ${bucket.males} | F: ${bucket.females}`}
+          />
+        ))}
+        {summaryStats.noReachTime.entries > 0 && (
+          <SummaryCard
+            title="No Reach Time Given"
+            value={`M: ${summaryStats.noReachTime.males} | F: ${summaryStats.noReachTime.females}`}
+          />
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 no-print">
@@ -358,9 +404,16 @@ export default function AttendanceAdminPage() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Reach Times</SelectItem>
-                    <SelectItem value="16 Monday Rathri">16 Monday Rathri</SelectItem>
-                    <SelectItem value="17 Chovva Nasta">17 Chovva Nasta</SelectItem>
-                    <SelectItem value="17 Chovva Nasta Venda">17 Chovva Nasta Venda</SelectItem>
+                    {reachTimeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                    {summaryStats.noReachTime.entries > 0 && (
+                      <SelectItem value={NO_REACH_TIME}>
+                        No Reach Time Given
+                      </SelectItem>
+                    )}
                 </SelectContent>
             </Select>
             <Select value={submissionStatusFilter} onValueChange={setSubmissionStatusFilter}>
