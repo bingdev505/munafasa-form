@@ -53,10 +53,10 @@ import { getAttendance, AttendanceWithRegistration } from "@/app/actions/get-att
 import { deleteAttendance } from "@/app/actions/delete-attendance";
 
 const CLASSES = [
-  "Muthavaal avval",
+  "Muthavaal Avval",
   "Muthavval Sani",
-  "Fiqh Thaqassus",
-  "Adab Thaqassus",
+  "Thakassus Fiqh",
+  "Thakassus Adab",
 ];
 
 export default function StudentsPage() {

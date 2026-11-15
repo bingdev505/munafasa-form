@@ -346,9 +346,9 @@ export default function AttendancePage() {
                       <SelectValue placeholder="Select a time" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="29th">29th</SelectItem>
-                      <SelectItem value="30th Nasta vendavar">30th Nasta vendavar</SelectItem>
-                      <SelectItem value="30th Nasta vendathavar">30th Nasta vendathavar</SelectItem>
+                      <SelectItem value="16 Monday Rathri">16 Monday Rathri</SelectItem>
+                      <SelectItem value="17 Chovva Nasta">17 Chovva Nasta</SelectItem>
+                      <SelectItem value="17 Chovva Nasta Venda">17 Chovva Nasta Venda</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

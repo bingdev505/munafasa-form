@@ -139,12 +139,12 @@ export default function AttendanceAdminPage() {
       totalMales: 0,
       totalFemales: 0,
       fullTotal: 0,
-      "29th_males": 0,
-      "29th_females": 0,
-      "30th Nasta vendavar_males": 0,
-      "30th Nasta vendavar_females": 0,
-      "30th Nasta vendathavar_males": 0,
-      "30th Nasta vendathavar_females": 0,
+      "16 Monday Rathri_males": 0,
+      "16 Monday Rathri_females": 0,
+      "17 Chovva Nasta_males": 0,
+      "17 Chovva Nasta_females": 0,
+      "17 Chovva Nasta Venda_males": 0,
+      "17 Chovva Nasta Venda_females": 0,
     };
 
     for (const entry of attendance) {
@@ -330,16 +330,16 @@ export default function AttendanceAdminPage() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6 no-print">
         <SummaryCard 
-            title="Arriving 29th"
-            value={`M: ${summaryStats["29th_males"]} | F: ${summaryStats["29th_females"]}`}
+            title="16 Monday Rathri"
+            value={`M: ${summaryStats["16 Monday Rathri_males"]} | F: ${summaryStats["16 Monday Rathri_females"]}`}
         />
         <SummaryCard 
-            title="30th Nasta vendavar"
-            value={`M: ${summaryStats["30th Nasta vendavar_males"]} | F: ${summaryStats["30th Nasta vendavar_females"]}`}
+            title="17 Chovva Nasta"
+            value={`M: ${summaryStats["17 Chovva Nasta_males"]} | F: ${summaryStats["17 Chovva Nasta_females"]}`}
         />
         <SummaryCard 
-            title="30th Nasta vendathavar"
-            value={`M: ${summaryStats["30th Nasta vendathavar_males"]} | F: ${summaryStats["30th Nasta vendathavar_females"]}`}
+            title="17 Chovva Nasta Venda"
+            value={`M: ${summaryStats["17 Chovva Nasta Venda_males"]} | F: ${summaryStats["17 Chovva Nasta Venda_females"]}`}
         />
       </div>
 
@@ -358,9 +358,9 @@ export default function AttendanceAdminPage() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Reach Times</SelectItem>
-                    <SelectItem value="29th">29th</SelectItem>
-                    <SelectItem value="30th Nasta vendavar">30th Nasta vendavar</SelectItem>
-                    <SelectItem value="30th Nasta vendathavar">30th Nasta vendathavar</SelectItem>
+                    <SelectItem value="16 Monday Rathri">16 Monday Rathri</SelectItem>
+                    <SelectItem value="17 Chovva Nasta">17 Chovva Nasta</SelectItem>
+                    <SelectItem value="17 Chovva Nasta Venda">17 Chovva Nasta Venda</SelectItem>
                 </SelectContent>
             </Select>
             <Select value={submissionStatusFilter} onValueChange={setSubmissionStatusFilter}>
