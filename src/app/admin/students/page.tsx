@@ -53,7 +53,6 @@ import { getAttendance, AttendanceWithRegistration } from "@/app/actions/get-att
 import { deleteAttendance } from "@/app/actions/delete-attendance";
 
 const CLASSES = [
-  "Muthavaal Avval",
   "Muthavval Sani",
   "Thakassus Fiqh",
   "Thakassus Adab",
